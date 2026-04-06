@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Paysheet Generator</title>
+    <style>
+        body { font-family: Arial; text-align: center; margin-top: 50px; background-color: #f4f4f9; }
+        .box { border: 1px solid #ccc; padding: 25px; display: inline-block; width: 400px; background: white; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        select, input, button { padding: 10px; margin-top: 10px; width: 90%; border: 1px solid #ddd; border-radius: 4px; }
+        button { background-color: #007bff; color: white; border: none; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #0056b3; }
+        .section-title { border-bottom: 2px solid #007bff; padding-bottom: 10px; margin-bottom: 20px; color: #333; }
+    </style>
+</head>
+<body>
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <div style="background:#ffdddd;color:#900;padding:10px;margin-bottom:15px;border:1px solid #f5c2c2;">
+        {{ messages[0] }}
+        </div>
+    {% endif %}
+    {% endwith %}
+
+    <h2>Paysheet Genarater</h2>
+
+    <div class="box">
+        <h3 class="section-title">1. Upload HRIS Data</h3>
+        <form action="/upload" method="post" enctype="multipart/form-data">
+            <input type="file" name="file" required>
+            <button type="submit">Upload Excel</button>
+        </form>
+    </div>
+
+    <br> 
+
+    <div class="box">
+        <h3 class="section-title">2. Generate Payslips</h3>
+        <form action="/generate" method="post">
+            <select name="company" required>
+                <option value="" disabled selected>Select Company</option>
+                <option value="COLLECTIVERCM">COLLECTIVERCM</option>
+                <option value="INNOBOT">INNOBOT</option>
+                <option value="VENTURECORP">VENTURECORP</option>
+            </select>
+
+            <input type="month" name="pay_period" required>
+
+            <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
+                <button type="submit" name="action" value="all">Download All Payslips</button>
+                <p style="margin: 15px 0; font-size: 0.9em; color: #666;">- OR -</p>
+                <input type="text" name="emp_id" placeholder="Enter Employee Number">
+                <button type="submit" name="action" value="one" style="background-color: #28a745;">Generate Single</button>
+            </div>
+        </form>
+        
+    </div>
+    <!--<div class="box">
+            <h3 class="section-title">Upload Company Logo</h3>
+            <form action="/upload-logo" method="post" enctype="multipart/form-data">
+                <input type="file" name="logo" accept="image/*" required>
+                <button type="submit">Upload Logo</button>
+            </form>
+    </div>-->
+
+</body>
+</html>
