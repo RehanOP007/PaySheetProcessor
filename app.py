@@ -5,6 +5,7 @@ import pdfkit
 from datetime import datetime
 import webbrowser
 import sys
+from waitress import serve
 
 app = Flask(__name__)
 app.secret_key = "secret123" 
@@ -165,8 +166,16 @@ def generate_one():
     return send_file(pdf_path, as_attachment=True)
 
 if __name__ == "__main__":
-    # Ensure the script opens the browser only once
-    if not os.environ.get("WERKZEUG_RUN_MAIN"):
-        webbrowser.open("http://127.0.0.1:5000")
+    # 1. Define the URL
+    url = "http://127.0.0.1:5000"
     
-    app.run(host="127.0.0.1", port=5000, debug=False)
+    # 2. Print status to CMD
+    print(f"Starting production server on {url}")
+    print("Close this window to stop the program.")
+    
+    # 3. Open the browser FIRST
+    # We use a slight delay logic or just call it before the blocking serve call
+    webbrowser.open(url)
+    
+    # 4. Start the blocking production server
+    serve(app, host='127.0.0.1', port=5000, threads=6)
