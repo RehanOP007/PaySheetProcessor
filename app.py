@@ -80,12 +80,12 @@ def upload():
             df.columns.astype(str)
             .str.strip()
             .str.lower()
-            .str.replace(r"[\s/]+", "_", regex=True)
+            .str.replace(r'[\s/&]+', '_', regex=True)
         )
 
         # Remove invalid rows
         if "emp_number" not in df.columns:
-            flash("Column 'emp_number' not found in uploaded file")
+            flash("Column 'emp_number' not found in uploaded file", "error")
             return redirect(url_for("index"))
 
         df = df.dropna(subset=["emp_number"])
@@ -93,11 +93,13 @@ def upload():
         global_df = df
         print(f"✅ Processed columns: {df.columns.tolist()}")
 
-        flash("Excel file uploaded successfully!")
+        flash("Excel file uploaded successfully!", "success")
         return redirect(url_for("index"))
 
     except Exception as e:
-        flash(f"Error reading Excel file: {str(e)}")
+
+        error_msg = f"Error reading Excel file: {str(e)}"
+        flash(error_msg, "error")
         return redirect(url_for("index"))
 
 
@@ -106,7 +108,7 @@ def generate():
     global global_df
 
     if global_df is None:
-        flash("Please upload an Excel file first!")
+        flash("Please upload an Excel file first!", "error")
         return redirect(url_for("index"))
 
     company = request.form.get("company", "venturecorp")
@@ -115,7 +117,8 @@ def generate():
     emp_id = request.form.get("emp_id")
 
     if not pay_period:
-        return "Please select a pay period."
+        flash("Please select a pay period.", "error")
+        return redirect(url_for("index"))
 
     try:
         date_obj = datetime.strptime(pay_period, "%Y-%m")

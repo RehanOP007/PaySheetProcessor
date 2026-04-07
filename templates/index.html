@@ -10,18 +10,18 @@
 
   <style>
     :root {
-      --bg:       #060812; /* Deeper dark for better contrast */
-      --surface:  #0b101f;
-      --card:     #11182a;
-      --border:   #1e293b;
-      /* Gradient Colors */
-      --accent-blue:   #2563eb; /* Blue 600 */
-      --accent-purple: #9333ea; /* Purple 600 */
-      --text:     #f1f5f9;
-      --subtext:  #94a3b8;
-      --success:  #22c55e;
-      --font:     'Sora', sans-serif;
-      --mono:     'JetBrains Mono', monospace;
+      --bg:            #060812;
+      --surface:       #0b101f;
+      --card:          #11182a;
+      --border:        #1e293b;
+      --accent-blue:   #2563eb;
+      --accent-purple: #9333ea;
+      --text:          #f1f5f9;
+      --subtext:       #94a3b8;
+      --muted:         #475569;
+      --success:       #22c55e;
+      --font:          'Sora', sans-serif;
+      --mono:          'JetBrains Mono', monospace;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -36,7 +36,6 @@
       align-items: center;
     }
 
-    /* ── Background grid ── */
     body::before {
       content: '';
       position: fixed;
@@ -49,7 +48,6 @@
       z-index: 0;
     }
 
-    /* ── Glow orb ── */
     body::after {
       content: '';
       position: fixed;
@@ -71,177 +69,85 @@
       padding: 48px 24px 80px;
     }
 
-    /* ── Flash message ── */
-    .flash {
-      background: rgba(239,68,68,0.1);
-      border: 1px solid rgba(239,68,68,0.3);
-      color: #fca5a5;
-      padding: 14px 20px;
-      border-radius: 12px;
-      margin-bottom: 32px;
-      font-size: 0.875rem;
-      font-weight: 500;
-    }
+    .flash { padding: 14px 20px; border-radius: 12px; margin-bottom: 32px; font-size: 0.875rem; font-weight: 500;  transition: opacity 0.4s ease, transform 0.4s ease; }
+    .flash.error   { background: rgba(239,68,68,0.1);  border: 1px solid rgba(239,68,68,0.3);  color: #fca5a5; }
+    .flash.success { background: rgba(34,197,94,0.1);  border: 1px solid rgba(34,197,94,0.3);  color: #86efac; }
 
-    /* ── Top nav bar ── */
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 18px 28px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
+    header {
+      width: 100%;
       position: sticky;
       top: 0;
       z-index: 10;
-      width: 100%;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
     }
 
-    .brand {
+    .header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 16px 24px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: space-between;
     }
+
+    .brand { display: flex; align-items: center; gap: 12px; }
 
     .brand-logo {
-      width: 36px;
-      height: 36px;
+      width: 36px; height: 36px;
       background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
       border-radius: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--mono);
-      font-weight: 600;
-      font-size: 0.75rem;
-      color: #fff;
-      letter-spacing: -0.5px;
-      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-weight: 600; font-size: 0.75rem;
+      color: #fff; letter-spacing: -0.5px; flex-shrink: 0;
     }
 
-    .brand-name {
-      font-weight: 700;
-      font-size: 1rem;
-      letter-spacing: -0.3px;
-    }
-
-    .brand-name span {
-      color: var(--accent);
-    }
+    .brand-name { font-weight: 700; font-size: 1rem; letter-spacing: -0.3px; }
+    .brand-name span { background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 
     .badge-powered {
-      font-size: 0.7rem;
-      font-weight: 500;
-      color: var(--subtext);
-      background: rgba(14,165,233,0.07);
-      border: 1px solid rgba(14,165,233,0.15);
-      padding: 4px 10px;
-      border-radius: 99px;
-      font-family: var(--mono);
+      font-size: 0.7rem; font-weight: 500; color: var(--subtext);
+      background: rgba(37,99,235,0.07); border: 1px solid rgba(37,99,235,0.18);
+      padding: 4px 10px; border-radius: 99px; font-family: var(--mono);
     }
 
-    /* ── Page header ── */
-    .page-header {
-      text-align: center;
-      margin-bottom: 52px;
-      animation: fadeUp 0.6s ease both;
-    }
+    .page-header { text-align: center; margin-bottom: 52px; animation: fadeUp 0.6s ease both; }
+    .page-header h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 700; letter-spacing: -1px; line-height: 1.1; margin-bottom: 12px; }
+    .page-header h1 em { font-style: normal; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .page-header p { color: var(--subtext); font-size: 0.95rem; }
 
-    .page-header h1 {
-      font-size: clamp(1.8rem, 4vw, 2.6rem);
-      font-weight: 700;
-      letter-spacing: -1px;
-      line-height: 1.1;
-      margin-bottom: 12px;
-    }
+    .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 640px) { .steps { grid-template-columns: 1fr; } }
 
-    .page-header h1 em {
-      font-style: normal;
-      background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .page-header p {
-      color: var(--subtext);
-      font-size: 0.95rem;
-      font-weight: 400;
-    }
-
-    /* ── Steps layout ── */
-    .steps {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-
-    @media (max-width: 640px) {
-      .steps { grid-template-columns: 1fr; }
-    }
-
-    /* ── Card ── */
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      overflow: hidden;
-      animation: fadeUp 0.6s ease both;
-    }
-
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; animation: fadeUp 0.6s ease both; }
     .card:nth-child(2) { animation-delay: 0.1s; }
 
     .card-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 22px 26px 20px;
-      border-bottom: 1px solid var(--border);
-      background: linear-gradient(180deg, rgba(14,165,233,0.05) 0%, transparent 100%);
+      display: flex; align-items: center; gap: 12px;
+      padding: 22px 26px 20px; border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(37,99,235,0.06) 0%, transparent 100%);
     }
 
     .step-num {
-      width: 28px;
-      height: 28px;
-      border-radius: 8px;
-      background: rgba(37, 99, 235, 0.1);
-      border: 1px solid rgba(147, 51, 234, 0.3);
-      color: #93c5fd; /* Light blue text */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: var(--accent);
-      flex-shrink: 0;
+      width: 28px; height: 28px; border-radius: 8px;
+      background: rgba(37,99,235,0.1); border: 1px solid rgba(147,51,234,0.3);
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--mono); font-size: 0.75rem; font-weight: 600;
+      color: #93c5fd; flex-shrink: 0;
     }
 
-    .card-header h2 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      letter-spacing: -0.2px;
-    }
+    .card-header h2 { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.2px; }
+    .card-body { padding: 26px; }
 
-    .card-body {
-      padding: 26px;
-    }
-
-    /* ── Form elements ── */
-    .field {
-      margin-bottom: 16px;
-    }
+    .field { margin-bottom: 16px; }
 
     label {
-      display: block;
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--subtext);
-      margin-bottom: 7px;
+      display: block; font-size: 0.75rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--subtext); margin-bottom: 7px;
     }
 
+    /* ── All inputs — tell the browser we're dark so native UI (calendar icon, spinners) renders light ── */
     input[type="file"],
     input[type="text"],
     input[type="month"],
@@ -258,169 +164,119 @@
       transition: border-color 0.2s, box-shadow 0.2s;
       appearance: none;
       -webkit-appearance: none;
+      /* ✅ This makes the browser render native chrome (calendar icon, arrows) in light colours */
+      color-scheme: dark;
     }
 
-    input[type="file"] {
-      color: var(--subtext);
-      cursor: pointer;
-    }
+    input[type="file"] { color: var(--subtext); cursor: pointer; }
 
     input[type="file"]::file-selector-button {
       padding: 6px 14px;
-      background: rgba(14,165,233,0.1);
-      border: 1px solid rgba(14,165,233,0.2);
+      background: rgba(37,99,235,0.1);
+      border: 1px solid rgba(37,99,235,0.25);
       border-radius: 7px;
-      color: var(--accent);
-      font-family: var(--font);
-      font-size: 0.8rem;
-      font-weight: 600;
-      cursor: pointer;
-      margin-right: 12px;
-      transition: background 0.2s;
+      color: #93c5fd;
+      font-family: var(--font); font-size: 0.8rem; font-weight: 600;
+      cursor: pointer; margin-right: 12px; transition: background 0.2s;
     }
-
-    input[type="file"]::file-selector-button:hover {
-      background: rgba(14,165,233,0.18);
-    }
+    input[type="file"]::file-selector-button:hover { background: rgba(37,99,235,0.18); }
 
     input:focus, select:focus {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(14,165,233,0.12);
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
     }
 
     select {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a9bbf' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      /* -webkit-appearance none hides the native arrow so we use our own */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
       background-repeat: no-repeat;
       background-position: right 14px center;
       padding-right: 36px;
     }
 
-    /* ── Divider ── */
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 20px 0;
+    /* Month input — keep -webkit-appearance none to style the box,
+       but color-scheme:dark ensures the calendar picker icon is white */
+    input[type="month"] {
+      /* Re-allow the browser's inner spinner/icon area while keeping our custom border */
+      -webkit-appearance: none;
     }
 
-    .divider::before,
-    .divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    .divider span {
-      font-size: 0.75rem;
-      color: var(--muted);
-      font-weight: 500;
-      font-family: var(--mono);
-    }
-
-    /* ── Buttons ── */
-    .btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      padding: 12px 20px;
-      border: none;
-      border-radius: 10px;
-      font-family: var(--font);
-      font-size: 0.875rem;
-      font-weight: 600;
+    /* Webkit inner calendar button colour fix */
+    input[type="month"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.8) brightness(1.2);
       cursor: pointer;
-      transition: all 0.2s;
-      letter-spacing: -0.1px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    input[type="month"]::-webkit-calendar-picker-indicator:hover {
+      opacity: 1;
+    }
+
+    .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+    .divider span { font-size: 0.75rem; color: var(--muted); font-weight: 500; font-family: var(--mono); }
+
+    .btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      width: 100%; padding: 12px 20px; border: none; border-radius: 10px;
+      font-family: var(--font); font-size: 0.875rem; font-weight: 600;
+      cursor: pointer; transition: all 0.2s; letter-spacing: -0.1px;
     }
 
     .btn-primary {
       background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
       color: #fff;
-      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
+      box-shadow: 0 4px 14px rgba(37,99,235,0.3);
     }
-
-    .btn-primary:hover {
-      box-shadow: 0 6px 20px rgba(147, 51, 234, 0.4);
-      filter: brightness(1.1);;
-    }
-
-    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:hover { filter: brightness(1.1); box-shadow: 0 6px 20px rgba(147,51,234,0.4); }
+    .btn-primary:active { filter: brightness(1); }
 
     .btn-success {
-      background: linear-gradient(135deg, #4f46e5, var(--accent-purple)); /* Indigo to Purple */
+      background: linear-gradient(135deg, #4f46e5, var(--accent-purple));
       color: #fff;
-      box-shadow: 0 4px 14px rgba(22,163,74,0.2);
+      box-shadow: 0 4px 14px rgba(79,70,229,0.3);
     }
+    .btn-success:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(147,51,234,0.4); }
 
-    .btn-success:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(22,163,74,0.3);
-    }
+    .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
 
-    /* ── Icon SVG inline ── */
-    .btn svg {
-      width: 16px;
-      height: 16px;
-      flex-shrink: 0;
-    }
-
-    /* ── Info note ── */
     .info-note {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      background: rgba(14,165,233,0.06);
-      border: 1px solid rgba(14,165,233,0.12);
-      border-radius: 10px;
-      padding: 12px 14px;
-      margin-top: 20px;
+      display: flex; align-items: flex-start; gap: 10px;
+      background: rgba(37,99,235,0.06); border: 1px solid rgba(37,99,235,0.14);
+      border-radius: 10px; padding: 12px 14px; margin-top: 20px;
     }
-
     .info-note svg { flex-shrink: 0; margin-top: 1px; }
+    .info-note p { font-size: 0.78rem; color: var(--subtext); line-height: 1.5; }
 
-    .info-note p {
-      font-size: 0.78rem;
-      color: var(--subtext);
-      line-height: 1.5;
-    }
-
-    /* ── Footer ── */
     footer {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      text-align: center;
-      padding: 24px;
-      border-top: 1px solid var(--border);
-      margin-top: auto;
+      position: relative; z-index: 1; width: 100%;
+      text-align: center; padding: 24px;
+      border-top: 1px solid var(--border); margin-top: auto;
     }
+    footer p { font-size: 0.78rem; color: var(--muted); }
+    footer strong { background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-weight: 700; }
 
-    footer p {
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    footer strong {
-      color: var(--accent);
-      font-weight: 600;
-    }
-
-    /* ── Animations ── */
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(18px); }
       to   { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
+<script>
+  setTimeout(() => {
+    const flashes = document.querySelectorAll(".flash");
+    flashes.forEach(flash => {
+      flash.style.opacity = "0";
+      flash.style.transform = "translateY(-10px)";
+      setTimeout(() => flash.remove(), 400);
+    });
+  }, 3000);
+</script>
 
 <body>
 
-  <!-- ── Top nav ── -->
-  <header style="width:100%; position:sticky; top:0; z-index:10; background:var(--surface); border-bottom:1px solid var(--border);">
-    <div style="max-width:900px; margin:0 auto; padding:16px 24px; display:flex; align-items:center; justify-content:space-between;">
+  <header>
+    <div class="header-inner">
       <div class="brand">
         <div class="brand-logo">VC</div>
         <span class="brand-name">Venture<span>Corp</span></span>
@@ -431,20 +287,19 @@
 
   <div class="page-wrap">
 
-    <!-- Flash messages -->
-    {% with messages = get_flashed_messages() %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    <div class="flash">⚠ {{ messages[0] }}</div>
+      {% for category, message in messages %}
+        <div class="flash {{ category }}">{{ message }}</div>
+      {% endfor %}
     {% endif %}
     {% endwith %}
 
-    <!-- ── Page header ── -->
     <div class="page-header">
       <h1>Paysheet <em>Generator</em></h1>
       <p>Upload employee data and generate payslips in seconds — powered by VentureCorp Payroll Suite.</p>
     </div>
 
-    <!-- ── Two-column steps ── -->
     <div class="steps">
 
       <!-- Step 1 — Upload -->
@@ -459,7 +314,6 @@
               <label>Excel File</label>
               <input type="file" name="file" accept=".xlsx,.xls,.csv" required />
             </div>
-
             <button type="submit" class="btn btn-primary">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
@@ -467,9 +321,8 @@
               Upload Excel
             </button>
           </form>
-
           <div class="info-note">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0ea5e9" stroke-width="2">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2">
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>
             <p>Accepted formats: .xlsx, .xls, .csv. Upload the latest HRIS export before generating payslips.</p>
@@ -494,26 +347,21 @@
                 <option value="VENTURECORP">VENTURECORP</option>
               </select>
             </div>
-
             <div class="field">
               <label>Pay Period</label>
               <input type="month" name="pay_period" required />
             </div>
-
             <button type="submit" name="action" value="all" class="btn btn-primary">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 5v14M5 12l7 7 7-7"/>
               </svg>
               Download All Payslips
             </button>
-
             <div class="divider"><span>or generate single</span></div>
-
             <div class="field">
               <label>Employee Number</label>
               <input type="text" name="emp_id" placeholder="e.g. EMP-0042" style="font-family:var(--mono);" />
             </div>
-
             <button type="submit" name="action" value="one" class="btn btn-success">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
@@ -528,9 +376,8 @@
     </div>
   </div>
 
-  <!-- ── Footer ── -->
   <footer>
-    <p>© 2025 <strong>VentureCorp</strong> · Payroll Suite · For internal use only</p>
+    <p>© 2026 <strong>VentureCorp</strong> · Payroll Suite · For internal use only</p>
   </footer>
 
 </body>

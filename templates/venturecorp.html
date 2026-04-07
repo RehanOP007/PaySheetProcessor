@@ -106,22 +106,55 @@
             <td>Meal Allowance</td>
             <td class="right">{{ "{:,.2f}".format(emp.meal_allw or 0) }}</td>
         </tr>
-        <tr class="total-row">
-            <td>Total Basic</td>
-            <td class="right">{{ "{:,.2f}".format((emp.basic or 0) + (emp.meal_allw or 0)) }}</td>
-        </tr>
         <tr>
             <td>Travel Allowance</td>
             <td class="right">{{ "{:,.2f}".format(emp.travel_allw or 0) }}</td>
         </tr>
+         <tr class="total-row">
+            <td>Total Basic</td>
+            <td class="right">{{ "{:,.2f}".format((emp.basic or 0) + (emp.meal_allw or 0)) }}</td>
+        </tr>
         <tr>
-            <td>Other Allowances</td>
-            <td class="right">{{ "{:,.2f}".format((emp.perform_all or 0) + (emp.profit_share or 0)) }}</td>
+            <td>US Shift</td>
+            <td class="right">{{ "{:,.2f}".format(emp.us_shift or 0) }}</td>
+        </tr>
+        <tr>
+            <td>Vehicle Allowance</td>
+            <td class="right">{{ "{:,.2f}".format(emp.vehicle_loan_allw or 0) }}</td>
+        </tr>
+        <tr>
+            <td>Perfomance Allowance</td>
+            <td class="right">{{ "{:,.2f}".format(emp.perform_allw or 0) }}</td>
+        </tr>
+        <tr>
+            <td>Poya Pay</td>
+            <td class="right">{{ "{:,.2f}".format(emp.poya_pay or 0) }}</td>
+        </tr>
+        <tr>
+            <td>Health and Wellness</td>
+            <td class="right">{{ "{:,.2f}".format(emp.health_and_wellness or 0) }}</td>
+        </tr>
+        <tr>
+            <td>Team Profit Share</td>
+            <td class="right">{{ "{:,.2f}".format(emp.team_profit_share or 0) }}</td>
+        </tr>
+        <tr>
+            <td>Boarding Allowance</td>
+            <td class="right">{{ "{:,.2f}".format(emp.boarding_allowance or 0) }}</td>
+        </tr>
+        <tr>
+            <td>Special Traveling & Meal Reimbursements</td>
+            <td class="right">{{ "{:,.2f}".format(emp.special_traveling_&_meal_reimbursements or 0) }}</td>
         </tr>
         <tr>
             <td>Reimbursement</td>
             <td class="right">{{ "{:,.2f}".format(emp.reimbursements or 0) }}</td>
         </tr>
+        <tr>
+            <td>Total Allowances</td>
+            <td class="right">{{ "{:,.2f}".format(emp.total_extras or 0) }}</td>
+        </tr>
+        
         <tr class="total-row">
             <td>Total Earnings</td>
             <td class="right">{{ "{:,.2f}".format(emp.total or 0) }}</td>
@@ -136,19 +169,19 @@
         </tr>
         <tr>
             <td>No-Pay</td>
-            <td class="right">0.00</td>
-        </tr>
-        <tr>
-            <td>PAYE Tax</td>
-            <td class="right">{{ "{:,.2f}".format(emp['paye_tax'] or 0) }}</td>
+            <td class="right">{{ "{:,.2f}".format(emp['no_pay'] or 0) }}</td>
         </tr>
         <tr class="total-row">
             <td>Total Deductions</td>
-            <td class="right">{{ "{:,.2f}".format((emp['epf_8%_(employee)'] or 0) + (emp['paye_tax'] or 0)) }}</td>
+            <td class="right">{{ "{:,.2f}".format((emp['epf_8%_(employee)'] or 0) + (emp['no_pay'] or 0)) }}</td>
         </tr>
 
         <tr class="section-row">
             <td colspan="2">Company Contribution</td>
+        </tr>
+        <tr>
+            <td>PAYE Tax</td>
+            <td class="right">{{ "{:,.2f}".format(emp['paye_tax'] or 0) }}</td>
         </tr>
         <tr>
             <td>EPF 12%</td>
@@ -160,7 +193,7 @@
         </tr>
         <tr class="total-row">
             <td>Total Other Contributions</td>
-            <td class="right">{{ "{:,.2f}".format((emp['company_epf_12'] or 0) + (emp['company_etf_3'] or 0)) }}</td>
+            <td class="right">{{ "{:,.2f}".format((emp['company_epf_12'] or 0) + (emp['company_etf_3'] or 0) + (emp['paye_tax'] or 0)) }}</td>
         </tr>
     </table>
 
@@ -178,7 +211,7 @@
                 <td class="right">LKR {{ "{:,.2f}".format(emp['cost_to_company'] or 0) }}</td>
             </tr>
         </table><br>
-        <strong>*PAYE tax is deducted from the employee.</strong>
+        <strong>*PAYE tax is not deducted from the employee.</strong>
     </div>
 
     <div class="footer">
