@@ -184,7 +184,7 @@
         </tr>
         <tr>
             <td>PAYE Tax</td>
-            <td class="right">{{ "{:,.2f}".format(emp['paye_tax'] or 0) }}</td>
+            <td class="right">{{ "{:,.2f}".format(emp['tax_on_tax'] or 0) }}</td>
         </tr>
         <tr>
             <td>EPF 12%</td>
@@ -192,11 +192,11 @@
         </tr>
         <tr>
             <td>ETF 3%</td>
-            <td class="right">{{ "{:,.2f}".format(emp['company_etf_(3%)'] or 0) }}</td>
+            <td class="right">{{ "{:,.2f}".format(emp['company_etf_3%'] or 0) }}</td>
         </tr>
         <tr class="total-row">
-            <td>Total Other Contributions</td>
-            <td class="right">{{ "{:,.2f}".format((emp['company_epf_(12%)'] or 0) + (emp['company_etf_(3%)'] or 0) + (emp['paye_tax'] or 0)) }}</td>
+            <td>Total Company Contributions</td>
+            <td class="right">{{ "{:,.2f}".format((emp['company_epf_(12%)'] or 0) + (emp['company_etf_3%'] or 0) + (emp['tax_on_tax'] or 0)) }}</td>
         </tr>
     </table>
 
