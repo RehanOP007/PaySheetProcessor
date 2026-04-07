@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+
+# Virtual Environment
+venv/
+.env
+.env.*
+
+# Flask
+instance/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Build / dist
+build/
+dist/
+*.egg-info/
+
+# Uploads & generated files
+uploads/
+output/
+
+# Docker
+Dockerfile
+docker.txt
+docker-compose.yml
+.dockerignore
+*.tar
