@@ -238,7 +238,10 @@
     }
     .btn-success:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(147,51,234,0.4); }
 
-    .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+    .button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
 
     .info-note {
       display: flex; align-items: flex-start; gap: 10px;
@@ -272,6 +275,95 @@
     });
   }, 3000);
 </script>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+  const companyEl = document.getElementById("company");
+  const periodEl = document.getElementById("pay_period");
+  const fileInput = document.getElementById("fileInput");
+
+  const uploadBtn = document.getElementById("uploadBtn");
+  const generateAllBtn = document.getElementById("generateAllBtn");
+  const generateOneBtn = document.getElementById("generateOneBtn");
+
+  // 🔹 Enable/Disable buttons
+  function toggleButtons() {
+    const valid = companyEl.value && periodEl.value;
+
+    uploadBtn.disabled = !valid;
+    generateAllBtn.disabled = !valid;
+    generateOneBtn.disabled = !valid;
+  }
+
+  // 🔹 Save to localStorage
+  function saveConfig() {
+    localStorage.setItem("company", companyEl.value);
+    localStorage.setItem("pay_period", periodEl.value);
+  }
+
+  // 🔹 Load from localStorage
+  function loadConfig() {
+    const savedCompany = localStorage.getItem("company");
+    const savedPeriod = localStorage.getItem("pay_period");
+
+    if (savedCompany) companyEl.value = savedCompany;
+    if (savedPeriod) periodEl.value = savedPeriod;
+  }
+
+  // 🔹 Attach config to forms
+  window.attachConfig = function(form) {
+    const company = companyEl.value;
+    const period = periodEl.value;
+
+    if (!company || !period) {
+      alert("Please select Company and Pay Period first.");
+      return false;
+    }
+
+    form.querySelector('input[name="company"]').value = company;
+    form.querySelector('input[name="pay_period"]').value = period;
+
+    // ✅ mark upload as done ONLY for upload form
+    if (form.action.includes("/upload")) {
+      localStorage.setItem("file_uploaded", "true");
+    }
+
+    return true;
+  };
+
+  function handleUploadState() {
+  const uploaded = localStorage.getItem("file_uploaded");
+
+  if (uploaded === "true") {
+    fileInput.disabled = true;
+    fileInput.style.opacity = "0.7";
+
+    fileInput.value = "";
+    fileInput.placeholder = "File uploaded ✓";
+  }
+}
+
+  // 🔹 Init
+  loadConfig();
+  toggleButtons();
+  handleUploadState();
+
+  companyEl.addEventListener("change", () => {
+    localStorage.removeItem("file_uploaded");
+    saveConfig();
+    toggleButtons();
+    fileInput.disabled = false;
+  });
+
+  periodEl.addEventListener("change", () => {
+    localStorage.removeItem("file_uploaded");
+    saveConfig();
+    toggleButtons();
+    fileInput.disabled = false;
+  });
+
+});
+</script>
 
 <body>
 
@@ -302,78 +394,91 @@
 
     <div class="steps">
 
-      <!-- Step 1 — Upload -->
-      <div class="card">
-        <div class="card-header">
-          <div class="step-num">01</div>
-          <h2>Upload HRIS Data</h2>
-        </div>
-        <div class="card-body">
-          <form action="/upload" method="post" enctype="multipart/form-data">
-            <div class="field">
-              <label>Excel File</label>
-              <input type="file" name="file" accept=".xlsx,.xls,.csv" required />
-            </div>
-            <button type="submit" class="btn btn-primary">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-              </svg>
-              Upload Excel
-            </button>
-          </form>
-          <div class="info-note">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93c5fd" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-            <p>Accepted formats: .xlsx, .xls, .csv. Upload the latest HRIS export before generating payslips.</p>
-          </div>
-        </div>
+  <!-- STEP 1: CONFIG -->
+  <div class="card">
+    <div class="card-header">
+      <div class="step-num">01</div>
+      <h2>Configure Payslip</h2>
+    </div>
+    <div class="card-body">
+
+      <!-- STORE VALUES (shared via JS) -->
+      <div class="field">
+        <label>Company</label>
+        <select id="company" required>
+          <option value="" disabled selected>Select company…</option>
+          <option value="COLLECTIVERCM">COLLECTIVERCM</option>
+          <option value="INNOBOT">INNOBOT</option>
+          <option value="VENTURECORP">VENTURECORP</option>
+        </select>
       </div>
 
-      <!-- Step 2 — Generate -->
-      <div class="card">
-        <div class="card-header">
-          <div class="step-num">02</div>
-          <h2>Generate Payslips</h2>
-        </div>
-        <div class="card-body">
-          <form action="/generate" method="post">
-            <div class="field">
-              <label>Company</label>
-              <select name="company" required>
-                <option value="" disabled selected>Select company…</option>
-                <option value="COLLECTIVERCM">COLLECTIVERCM</option>
-                <option value="INNOBOT">INNOBOT</option>
-                <option value="VENTURECORP">VENTURECORP</option>
-              </select>
-            </div>
-            <div class="field">
-              <label>Pay Period</label>
-              <input type="month" name="pay_period" required />
-            </div>
-            <button type="submit" name="action" value="all" class="btn btn-primary">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 5v14M5 12l7 7 7-7"/>
-              </svg>
-              Download All Payslips
-            </button>
-            <div class="divider"><span>or generate single</span></div>
-            <div class="field">
-              <label>Employee Number</label>
-              <input type="text" name="emp_id" placeholder="e.g. EMP-0042" style="font-family:var(--mono);" />
-            </div>
-            <button type="submit" name="action" value="one" class="btn btn-success">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
-                <polyline points="14 2 14 8 20 8"/>
-              </svg>
-              Generate Single Payslip
-            </button>
-          </form>
-        </div>
+      <div class="field">
+        <label>Pay Period</label>
+        <input type="month" id="pay_period" required />
+      </div>
+
+      <div class="info-note">
+        <p>Select company and pay period before uploading data.</p>
       </div>
 
     </div>
+  </div>
+
+
+  <!-- STEP 2: UPLOAD + GENERATE -->
+  <div class="card">
+    <div class="card-header">
+      <div class="step-num">02</div>
+      <h2>Upload & Generate</h2>
+    </div>
+    <div class="card-body">
+
+      <!-- UPLOAD FORM -->
+      <form action="/upload" method="post" enctype="multipart/form-data" onsubmit="return attachConfig(this)">
+        
+        <input type="hidden" name="company">
+        <input type="hidden" name="pay_period">
+
+        <div class="field">
+          <label>Excel File</label>
+          <input type="file" id="fileInput" name="file" accept=".xlsx,.xls,.csv" required />
+        </div>
+
+        <button type="submit" class="btn btn-primary" id="uploadBtn" disabled>
+          Upload Excel
+        </button>
+      </form>
+
+      <div class="divider"><span>generate</span></div>
+
+      <!-- GENERATE FORM -->
+      <form action="/generate" method="post" onsubmit="return attachConfig(this)">
+        
+        <input type="hidden" name="company">
+        <input type="hidden" name="pay_period">
+
+        <button type="submit" name="action" value="all" class="btn btn-primary" id="generateAllBtn" disabled>
+          Download All Payslips
+        </button>
+
+        <div class="divider"><span>or single</span></div>
+
+        <div class="field">
+          <label>Employee Number</label>
+          <input type="text" name="emp_id" placeholder="e.g. EMP-0042" style="font-family:var(--mono);" />
+        </div>
+
+        <button type="submit" name="action" value="one" class="btn btn-success" id="generateOneBtn" disabled>
+          Generate Single Payslip
+        </button>
+
+      </form>
+
+    </div>
+  </div>
+
+</div>
   </div>
 
   <footer>
