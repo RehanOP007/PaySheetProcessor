@@ -44,7 +44,22 @@ config = pdfkit.configuration(wkhtmltopdf=wkhtml_path)
 # PDF OPTIONS
 pdf_options = {
     "enable-local-file-access": None,
-    "encoding": "UTF-8"
+    "encoding": "UTF-8",
+
+    # ✅ A5 size
+    "page-size": "A5",
+
+    # ✅ Margins (tight for payslip)
+    "margin-top": "5mm",
+    "margin-bottom": "5mm",
+    "margin-left": "5mm",
+    "margin-right": "5mm",
+
+    # ✅ Fit content properly
+    "zoom": "0.9",   # adjust if needed (0.8–1.0 sweet spot)
+
+    # Optional
+    "print-media-type": None
 }
 
 

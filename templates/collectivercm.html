@@ -5,12 +5,19 @@
 <title>Payslip</title>
 
 <style>
+@page {
+    size: A5;
+    margin: 5mm;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    font-size: 13px;
+    font-family: Calibri, "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    zoom: 0.95;
 }
 .container {
-    width: 700px;
+    width: 100%;
+    max-width: 100%;
     margin: auto;
 }
 .header-table {
@@ -132,18 +139,32 @@ body {
 
     <!-- BASIC -->
     <table class="table">
+
+        {% set basic = emp.basic|float %}
+        {% set meal = emp.meal_allw|float %}
+        {% set total_basic = basic + meal %}
+
+        {% if basic != 0 %}
         <tr>
             <td class="label">Basic Salary</td>
-            <td class="value">{{ "{:,.2f}".format(emp.basic or 0) }}</td>
+            <td class="value">{{ "{:,.2f}".format(basic) }}</td>
         </tr>
+        {% endif %}
+
+        {% if meal != 0 %}
         <tr>
             <td class="label">Meal Allowance</td>
-            <td class="value">{{ "{:,.2f}".format(emp.meal_allw or 0) }}</td>
+            <td class="value">{{ "{:,.2f}".format(meal) }}</td>
         </tr>
+        {% endif %}
+
+        {% if total_basic != 0 %}
         <tr class="bold">
             <td class="label">Total Basic</td>
-            <td class="value">{{ "{:,.2f}".format((emp.basic or 0) + (emp.meal_allw or 0)) }}</td>
+            <td class="value">{{ "{:,.2f}".format(total_basic) }}</td>
         </tr>
+        {% endif %}
+
     </table>
 
     <!-- ALLOWANCES -->
