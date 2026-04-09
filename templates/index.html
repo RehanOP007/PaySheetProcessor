@@ -65,7 +65,7 @@
       position: relative;
       z-index: 1;
       width: 100%;
-      max-width: 900px;
+      max-width: 1200px;
       padding: 48px 24px 80px;
     }
 
@@ -116,8 +116,8 @@
     .page-header h1 em { font-style: normal; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
     .page-header p { color: var(--subtext); font-size: 0.95rem; }
 
-    .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-    @media (max-width: 640px) { .steps { grid-template-columns: 1fr; } }
+    .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; }
+    @media (max-width: 740px) { .steps { grid-template-columns: 1fr; } }
 
     .card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; animation: fadeUp 0.6s ease both; }
     .card:nth-child(2) { animation-delay: 0.1s; }
@@ -337,6 +337,10 @@ document.addEventListener("DOMContentLoaded", () => {
   if (uploaded === "true") {
     fileInput.disabled = true;
     fileInput.style.opacity = "0.7";
+    uploadBtn.disabled = true;
+    uploadBtn.textContent = "File already Uploaded";
+    uploadBtn.style.opacity = "0.7";
+    uploadBtn.style.cursor = "not-allowed";
 
     fileInput.value = "";
     fileInput.placeholder = "File uploaded ✓";
@@ -350,16 +354,32 @@ document.addEventListener("DOMContentLoaded", () => {
 
   companyEl.addEventListener("change", () => {
     localStorage.removeItem("file_uploaded");
+
     saveConfig();
     toggleButtons();
+
     fileInput.disabled = false;
+    fileInput.style.opacity = "1";
+
+    uploadBtn.disabled = false;
+    uploadBtn.textContent = "Upload Excel";
+    uploadBtn.style.opacity = "1";
+    uploadBtn.style.cursor = "pointer";
   });
 
   periodEl.addEventListener("change", () => {
     localStorage.removeItem("file_uploaded");
+
     saveConfig();
     toggleButtons();
+
     fileInput.disabled = false;
+    fileInput.style.opacity = "1";
+
+    uploadBtn.disabled = false;
+    uploadBtn.textContent = "Upload Excel";
+    uploadBtn.style.opacity = "1";
+    uploadBtn.style.cursor = "pointer";
   });
 
 });
@@ -394,91 +414,101 @@ document.addEventListener("DOMContentLoaded", () => {
 
     <div class="steps">
 
-  <!-- STEP 1: CONFIG -->
-  <div class="card">
-    <div class="card-header">
-      <div class="step-num">01</div>
-      <h2>Configure Payslip</h2>
-    </div>
-    <div class="card-body">
-
-      <!-- STORE VALUES (shared via JS) -->
-      <div class="field">
-        <label>Company</label>
-        <select id="company" required>
-          <option value="" disabled selected>Select company…</option>
-          <option value="COLLECTIVERCM">COLLECTIVERCM</option>
-          <option value="INNOBOT">INNOBOT</option>
-          <option value="VENTURECORP">VENTURECORP</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>Pay Period</label>
-        <input type="month" id="pay_period" required />
-      </div>
-
-      <div class="info-note">
-        <p>Select company and pay period before uploading data.</p>
-      </div>
-
-    </div>
-  </div>
-
-
-  <!-- STEP 2: UPLOAD + GENERATE -->
-  <div class="card">
-    <div class="card-header">
-      <div class="step-num">02</div>
-      <h2>Upload & Generate</h2>
-    </div>
-    <div class="card-body">
-
-      <!-- UPLOAD FORM -->
-      <form action="/upload" method="post" enctype="multipart/form-data" onsubmit="return attachConfig(this)">
-        
-        <input type="hidden" name="company">
-        <input type="hidden" name="pay_period">
-
-        <div class="field">
-          <label>Excel File</label>
-          <input type="file" id="fileInput" name="file" accept=".xlsx,.xls,.csv" required />
+      <!-- STEP 1: CONFIG -->
+      <div class="card">
+        <div class="card-header">
+          <div class="step-num">01</div>
+          <h2>Configure Payslip</h2>
         </div>
+        <div class="card-body">
 
-        <button type="submit" class="btn btn-primary" id="uploadBtn" disabled>
-          Upload Excel
-        </button>
-      </form>
+          <!-- STORE VALUES (shared via JS) -->
+          <div class="field">
+            <label>Company</label>
+            <select id="company" required>
+              <option value="" disabled selected>Select company…</option>
+              <option value="COLLECTIVERCM">COLLECTIVERCM</option>
+              <option value="INNOBOT">INNOBOT</option>
+              <option value="VENTURECORP">VENTURECORP</option>
+            </select>
+          </div>
 
-      <div class="divider"><span>generate</span></div>
+          <div class="field">
+            <label>Pay Period</label>
+            <input type="month" id="pay_period" required />
+          </div>
 
-      <!-- GENERATE FORM -->
-      <form action="/generate" method="post" onsubmit="return attachConfig(this)">
-        
-        <input type="hidden" name="company">
-        <input type="hidden" name="pay_period">
+          <div class="info-note">
+            <p>Select company and pay period before uploading data.</p>
+          </div>
 
-        <button type="submit" name="action" value="all" class="btn btn-primary" id="generateAllBtn" disabled>
-          Download All Payslips
-        </button>
-
-        <div class="divider"><span>or single</span></div>
-
-        <div class="field">
-          <label>Employee Number</label>
-          <input type="text" name="emp_id" placeholder="e.g. EMP-0042" style="font-family:var(--mono);" />
         </div>
+      </div>
 
-        <button type="submit" name="action" value="one" class="btn btn-success" id="generateOneBtn" disabled>
-          Generate Single Payslip
-        </button>
+      <!-- STEP 2: UPLOAD Excel -->
+      <div class="card">
+        <div class="card-header">
+          <div class="step-num">02</div>
+          <h2>Upload Excel</h2>
+        </div>
+        <div class="card-body">
 
-      </form>
+          <!-- UPLOAD FORM -->
+          <form action="/upload" method="post" enctype="multipart/form-data" onsubmit="return attachConfig(this)">
+            
+            <input type="hidden" name="company">
+            <input type="hidden" name="pay_period">
+
+            <div class="field">
+              <label>Excel File</label>
+              <input type="file" id="fileInput" name="file" accept=".xlsx,.xls,.csv" required />
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="uploadBtn" disabled>
+              Upload Excel
+            </button>
+          </form>
+
+        </div>
+      </div>
+
+      <!-- STEP 3: GENERATE PAYSLIPS -->
+      <div class="card">
+        <div class="card-header">
+          <div class="step-num">03</div>
+          <h2>Generate Payslips</h2>
+        </div>
+        <div class="card-body">
+
+          <div class="divider"><span>generate all</span></div>
+
+          <!-- GENERATE FORM -->
+          <form action="/generate" method="post" onsubmit="return attachConfig(this)">
+            
+            <input type="hidden" name="company">
+            <input type="hidden" name="pay_period">
+
+            <button type="submit" name="action" value="all" class="btn btn-primary" id="generateAllBtn" disabled>
+              Download All Payslips
+            </button>
+
+            <div class="divider"><span>or single</span></div>
+
+            <div class="field">
+              <label>Employee Number</label>
+              <input type="text" name="emp_id" placeholder="e.g. EMP-0042" style="font-family:var(--mono);" />
+            </div>
+
+            <button type="submit" name="action" value="one" class="btn btn-success" id="generateOneBtn" disabled>
+              Generate Single Payslip
+            </button>
+
+          </form>
+
+        </div>
+      </div>
 
     </div>
-  </div>
-
-</div>
   </div>
 
   <footer>
