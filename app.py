@@ -231,6 +231,13 @@ def generate_one():
     except Exception as e:
         return f"Error generating single payslip: {str(e)}"
 
+@app.route("/clear", methods=["POST"])
+def clear():
+    global global_df
+    global_df = None
+    flash("Uploaded file cleared. You can upload a new file.", "success")
+    return redirect(url_for("index"))
+
 
 if __name__ == "__main__":
     host = "0.0.0.0"

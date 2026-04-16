@@ -278,11 +278,19 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
+  const flashEls = document.querySelectorAll(".flash.success");
+  flashEls.forEach(el => {
+    if (el.textContent.includes("cleared")) {
+      localStorage.removeItem("file_uploaded");
+    }
+  });
+
   const companyEl = document.getElementById("company");
   const periodEl = document.getElementById("pay_period");
   const fileInput = document.getElementById("fileInput");
 
   const uploadBtn = document.getElementById("uploadBtn");
+  const clearBtn = document.getElementById("clearBtn");
   const generateAllBtn = document.getElementById("generateAllBtn");
   const generateOneBtn = document.getElementById("generateOneBtn");
 
@@ -342,8 +350,17 @@ document.addEventListener("DOMContentLoaded", () => {
     uploadBtn.style.opacity = "0.7";
     uploadBtn.style.cursor = "not-allowed";
 
+    clearBtn.disabled = false;
+    clearBtn.style.opacity = "1";
+    clearBtn.style.cursor = "pointer";
+
     fileInput.value = "";
     fileInput.placeholder = "File uploaded ✓";
+  } else {
+    
+    clearBtn.disabled = true;
+    clearBtn.style.opacity = "0.4";
+    clearBtn.style.cursor = "not-allowed";
   }
 }
 
@@ -365,6 +382,11 @@ document.addEventListener("DOMContentLoaded", () => {
     uploadBtn.textContent = "Upload Excel";
     uploadBtn.style.opacity = "1";
     uploadBtn.style.cursor = "pointer";
+
+    clearBtn.disabled = true;
+    clearBtn.style.opacity = "0.4";
+    clearBtn.style.cursor = "not-allowed";
+
   });
 
   periodEl.addEventListener("change", () => {
@@ -380,7 +402,18 @@ document.addEventListener("DOMContentLoaded", () => {
     uploadBtn.textContent = "Upload Excel";
     uploadBtn.style.opacity = "1";
     uploadBtn.style.cursor = "pointer";
+
+    clearBtn.disabled = true;
+    clearBtn.style.opacity = "0.4";
+    clearBtn.style.cursor = "not-allowed";
   });
+
+  const clearForm = document.querySelector('form[action="/clear"]');
+  if (clearForm) {
+    clearForm.addEventListener("submit", () => {
+      localStorage.removeItem("file_uploaded");
+    });
+  }
 
 });
 </script>
@@ -468,6 +501,12 @@ document.addEventListener("DOMContentLoaded", () => {
               Upload Excel
             </button>
           </form>
+          <form action="/clear" method="post" style="margin-top: 12px;">
+              <button type="submit" class="btn" id="clearBtn" disabled
+                style="background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); color: #f99898;">
+                ✕ Clear Uploaded File
+              </button>
+            </form>
 
         </div>
       </div>
