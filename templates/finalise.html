@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finalise Payslips</title>
+  <style>
+    :root {
+      --bg: #060812;
+      --surface: #0b101f;
+      --card: #11182a;
+      --border: #1e293b;
+      --accent: #2563eb;
+      --accent-2: #9333ea;
+      --text: #f1f5f9;
+      --subtext: #94a3b8;
+      --danger: #f87171;
+      --success: #22c55e;
+      --font: Arial, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+
+    .header-inner {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .back-link {
+      color: #bfdbfe;
+      text-decoration: none;
+      font-size: 14px;
+    }
+
+    main {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 24px 48px;
+    }
+
+    .page-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+      letter-spacing: 0;
+    }
+
+    .meta {
+      color: var(--subtext);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .summary {
+      border: 1px solid var(--border);
+      background: var(--card);
+      border-radius: 8px;
+      padding: 14px 16px;
+      color: var(--subtext);
+      font-size: 14px;
+      min-width: 230px;
+    }
+
+    .warning {
+      margin-bottom: 18px;
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      color: #fecaca;
+      background: rgba(248, 113, 113, 0.08);
+      border-radius: 8px;
+      padding: 12px 14px;
+      font-size: 14px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 820px;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      font-size: 14px;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--subtext);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      background: #0f172a;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    .mono { font-family: Consolas, monospace; }
+    .muted { color: var(--subtext); }
+    .missing { color: var(--danger); }
+
+    .pill {
+      display: inline-flex;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(37, 99, 235, 0.28);
+      color: #bfdbfe;
+      background: rgba(37, 99, 235, 0.1);
+      font-size: 12px;
+    }
+
+    .link-btn, button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(37, 99, 235, 0.35);
+      background: rgba(37, 99, 235, 0.12);
+      color: #dbeafe;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .actions form { margin: 0; }
+    .actions button { width: 100%; }
+
+    .primary {
+      border: none;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      color: #fff;
+    }
+
+    .success {
+      border: none;
+      background: linear-gradient(135deg, #16a34a, #2563eb);
+      color: #fff;
+    }
+
+    @media (max-width: 760px) {
+      .page-head { display: block; }
+      .summary { margin-top: 16px; }
+      .actions { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="brand">Payslip Finalise</div>
+      <a href="/" class="back-link">Back to generator</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-head">
+      <div>
+        <h1>Review Payslips</h1>
+        <div class="meta">
+          {{ company }} · {{ pay_period }} · Payment date {{ payment_date }}
+        </div>
+      </div>
+      <div class="summary">
+        {{ employees|length }} employee(s)<br />
+        Email column: {{ email_column or "not found" }}
+      </div>
+    </section>
+
+    {% if not email_column %}
+      <div class="warning">
+        No email column was found in the uploaded sheet. Add a column named email, email_address, work_email or company_email before sending emails.
+      </div>
+    {% endif %}
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Employee No</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Type</th>
+            <th>Payslip</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for employee in employees %}
+            <tr>
+              <td class="mono">{{ employee.emp_number }}</td>
+              <td>{{ employee.name or "Unnamed" }}</td>
+              <td class="{{ '' if employee.email else 'missing' }}">{{ employee.email or "Missing email" }}</td>
+              <td><span class="pill">{{ employee.kind }}</span></td>
+              <td>
+                <a class="link-btn" href="{{ url_for('download_employee', emp_id=employee.emp_number, company=company, pay_period=pay_period, payment_date=payment_date) }}">
+                  Download
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="actions">
+      <form action="/send-emails" method="post">
+        <input type="hidden" name="company" value="{{ company }}">
+        <input type="hidden" name="pay_period" value="{{ pay_period }}">
+        <input type="hidden" name="payment_date" value="{{ payment_date }}">
+        <button class="success" type="submit">Send Email</button>
+      </form>
+
+      <form action="/download-all" method="post">
+        <input type="hidden" name="company" value="{{ company }}">
+        <input type="hidden" name="pay_period" value="{{ pay_period }}">
+        <input type="hidden" name="payment_date" value="{{ payment_date }}">
+        <button class="primary" type="submit">Download All Payslips</button>
+      </form>
+
+      <form action="/download-zip" method="post">
+        <input type="hidden" name="company" value="{{ company }}">
+        <input type="hidden" name="pay_period" value="{{ pay_period }}">
+        <input type="hidden" name="payment_date" value="{{ payment_date }}">
+        <button type="submit">Download Separate ZIP</button>
+      </form>
+    </div>
+  </main>
+</body>
+</html>

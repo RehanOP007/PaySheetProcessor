@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    background: #fff;
+    color: #000;
+  }
+
+  .payslip-container {
+    width: 720px;
+    margin: 20px auto;
+    padding: 30px 35px;
+    border: 1px solid #ccc;
+    page-break-after: always;
+  }
+
+   .payslip-container:last-child, .page:last-child {
+    page-break-after: avoid;
+  }
+
+  /* ── HEADER (Table Layout) ── */
+  .header-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 18px;
+  }
+
+  .header-table td {
+    vertical-align: top;
+    border: none;
+    padding: 0;
+  }
+
+  .header-logo {
+    width: 55%;
+    text-align: left;
+  }
+
+  .header-logo img {
+    width: 280px;
+    height: auto;
+  }
+
+  .header-info {
+    width: 50%;
+    text-align: right; /* Aligns text to the right side of the page */
+  }
+
+  .header-info .company-name {
+    font-size: 19px;
+    font-weight: bold;
+    margin-bottom: 6px;
+    text-align: left;
+  }
+
+  .header-info .address {
+    font-size: 14px;
+    line-height: 1.55;
+    margin-bottom: 6px;
+    text-align: left;
+  }
+
+  .header-info .tel {
+    font-size: 14px;
+    line-height: 1.55;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: left;
+  }
+
+  .emp-details .pay-period {
+    font-size: 15px;
+    font-weight: bold;
+    margin-top: 4px;
+  }
+
+  /* ── EMP DETAILS ── */
+  .emp-details {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+  }
+
+  .emp-details tr td {
+    padding: 4px 6px;
+    font-size: 13.5px;
+    border: none;
+  }
+
+  .emp-details tr td:first-child {
+    font-weight: bold;
+    width: 200px;
+  }
+
+  .emp-details tr td:last-child {
+    font-weight: normal;
+  }
+
+  hr.divider {
+    border: none;
+    border-top: 1px double #000;
+    margin: 4px 0 10px 0;
+  }
+
+  /* ── MAIN TABLE ── */
+  .main-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 10px;
+  }
+
+  .main-table td {
+    padding: 4px 6px;
+    font-size: 13px;
+    border: none;
+  }
+
+  .main-table td.right {
+    text-align: right;
+    width: 160px;
+  }
+
+  /* section header row */
+  .section-header td {
+    font-weight: bold;
+    text-decoration: underline;
+    padding-top: 10px;
+    padding-bottom: 2px;
+    font-size: 13px;
+  }
+
+  /* subtotal / bold rows */
+  .bold-row td {
+    font-weight: bold;
+  }
+
+  /* column header (Amount Rs.) */
+  .col-header td {
+    font-weight: bold;
+    text-align: right;
+    font-size: 13px;
+    padding-bottom: 5px;
+  }
+
+  .col-header td:first-child {
+    text-align: left;
+  }
+
+  /* ── FOOTER ── */
+  .footer-note {
+    font-size: 12px;
+    margin-top: 20px;
+  }
+</style>
+</head>
+
+<body>
+{% for emp in employees %}
+<div class="payslip-container">
+
+  <table class="header-table">
+    <tr>
+      <td class="header-logo">
+        {% if logo_path %}
+        <img src="{{ logo_path }}" alt="Company Logo">
+        {% endif %}
+      </td>
+      <td class="header-info">
+        <div class="company-name">Innobot (PVT) LTD</div>
+        <div class="address">
+          58/45P 16th lane, Ananda Balika Mawatha,<br>
+          Sri Jayawardanapura Kotte.
+        </div>
+        <div class="tel">
+          Tel: +94 117 719 999<br>
+          077 9361972
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <table class="emp-details">
+    <tr class="pay-period">
+        <td >Pay Advice For the Month of &nbsp;&nbsp;&nbsp;</td>
+        <td ><strong>{{ month }} {{ year }}</strong></td>
+    </tr>
+    <tr>
+      <td>Employee Number</td>
+      <td>{{ emp.emp_number }}</td>
+    </tr>
+    <tr>
+      <td>Name</td>
+      <td>{{ emp.name }}</td>
+    </tr>
+    <tr>
+      <td>Designation</td>
+      <td>{{ emp.responsibility }}</td>
+    </tr>
+  </table>
+
+  <hr class="divider">
+
+  <table class="main-table">
+
+    <tr class="section-header col-header">
+      <td>Earnings</td>
+      <td class="right">Amount(Rs.)</td>
+    </tr>
+
+    {% if emp['basic.1'] | numval > 0 %}
+    <tr><td>Basic Salary</td><td class="right">{{ emp['basic.1'] | fmt }}</td></tr>
+    {% endif %}
+ 
+    {% if emp.meal_reim | numval > 0 %}
+    <tr><td>Meal Allowance</td><td class="right">{{ emp.meal_reim | fmt }}</td></tr>
+    {% endif %}
+ 
+    <tr class="bold-row">
+      <td>Total Basic</td>
+      <td class="right">{{ (emp['basic.1'] | numval + emp.meal_reim | numval) | fmtf }}</td>
+    </tr>
+ 
+    {% if emp.travel_reim | numval > 0 %}
+    <tr><td>Travel Allowance</td><td class="right">{{ emp.travel_reim | fmt }}</td></tr>
+    {% endif %}
+ 
+    {% if emp.performance_all | numval > 0 %}
+    <tr><td>Performance Allowance</td><td class="right">{{ emp.performance_all | fmt }}</td></tr>
+    {% endif %}
+ 
+    {% if emp['ot_allowance.1'] | numval > 0 %}
+    <tr><td>OT Allowance</td><td class="right">{{ emp['ot_allowance.1'] | fmt }}</td></tr>
+    {% endif %}
+ 
+    {% if emp.holiday_pay | numval > 0 %}
+    <tr><td>Holiday Payment</td><td class="right">{{ emp.holiday_pay | fmt }}</td></tr>
+    {% endif %}
+ 
+    {% if emp['incentives.1'] | numval > 0 %}
+    <tr><td>Incentives</td><td class="right">{{ emp['incentives.1'] | fmt }}</td></tr>
+    {% endif %}
+ 
+    {% if emp['reimbursements.1'] | numval > 0 %}
+    <tr><td>Reimbursements</td><td class="right">{{ emp['reimbursements.1'] | fmt }}</td></tr>
+    {% endif %}
+ 
+    <tr class="bold-row">
+      <td>Total Allowances</td>
+      <td class="right">{{ (emp.travel_reim | numval + emp.performance_all | numval + emp['ot_allowance.1'] | numval + emp['incentives.1'] | numval + emp['reimbursements.1'] | numval) | fmtf }}</td>
+    </tr>
+
+    <tr class="section-header col-header">
+      <td>Deductions</td>
+      <td class="right">Amount (Rs.)</td>
+    </tr>
+
+    <tr><td>EPF 8%</td>
+        <td class="right">{{ emp['epf_8%_(employee)'] | fmt }}</td></tr>
+
+    <tr><td>PAYE</td>
+        <td class="right">{{ emp.paye_tax | fmt }}</td></tr>
+
+
+    <tr class="bold-row"><td>Total Deductions</td>
+        <td class="right">{{ (emp['epf_8%_(employee)'] | numval + emp.paye_tax | numval + emp.nopay | numval) | fmtf }}</td></tr>
+
+    <tr class="section-header col-header">
+      <td>No-Pay</td>
+      <td class="right">Days</td>
+    </tr>
+
+    <tr><td>No-Pay</td>
+        <td class="right">{{ emp.nopay | fmt }}</td></tr>
+
+    <tr class="section-header col-header">
+      <td>Company Contribution</td>
+      <td class="right">Amount (Rs.)</td>
+    </tr>
+
+    <tr><td>EPF 12%</td>
+        <td class="right">{{ emp['company_epf_(12%)'] | fmt }}</td></tr>
+
+    <tr><td>ETF 3%</td>
+        <td class="right">{{ emp['company_etf_3%'] | fmt }}</td></tr>
+
+    <tr class="bold-row"><td>Total Other Contributions</td>
+        <td class="right">{{ (emp['company_epf_(12%)'] | numval + emp['company_etf_3%'] | numval) | fmtf }}</td></tr>
+
+    <tr class="section-header col-header">
+      <td>Summary</td>
+      <td class="right">Amount (Rs.)</td>
+    </tr>
+
+    <tr class="bold-row"><td>Total To Hand</td>
+        <td class="right">{{ emp.salary_take_home | fmt }}</td></tr>
+
+    <tr class="bold-row"><td>Total Allocation For Team Member</td>
+        <td class="right">{{ emp.cost_to_company | fmt }}</td></tr>
+
+  </table>
+
+  <div class="footer-note">
+    Payee Tax is covered by the employee.
+  </div>
+
+</div>
+{% endfor %}
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    background: #fff;
+    color: #000;
+  }
+
+  .page {
+    width: 720px;
+    margin: 0 auto;
+    padding: 40px 50px 30px 50px;
+    min-height: 1000px;
+    position: relative;
+    page-break-after: always;
+  }
+
+   .payslip-container:last-child, .page:last-child {
+    page-break-after: avoid;
+  }
+
+  .logo-wrap {
+    text-align: right;
+    margin-bottom: 30px;
+  }
+
+  .logo-wrap img {
+    width: 260px;
+    height: auto;
+  }
+
+  .doc-title {
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    margin-bottom: 24px;
+    letter-spacing: 0.5px;
+  }
+
+  .emp-info {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 28px;
+  }
+
+  .emp-info td {
+    padding: 5px 8px;
+    font-size: 13px;
+    border: none;
+  }
+
+  .emp-info td:first-child {
+    width: 120px;
+    font-weight: normal;
+  }
+
+  .emp-info td.colon {
+    width: 20px;
+    font-weight: normal;
+  }
+
+  .emp-info td:last-child {
+    font-weight: normal;
+  }
+
+  .allw-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+
+  .allw-table .group-header td {
+    text-align: center;
+    font-weight: normal;
+    background: #fff;
+    border: 1px solid #555;
+    padding: 6px 8px;
+  }
+
+  .allw-table .col-header td {
+    font-weight: bold;
+    text-align: center;
+    border: 1px solid #555;
+    padding: 6px 8px;
+  }
+
+  .allw-table td {
+    border: 1px solid #555;
+    padding: 6px 8px;
+    text-align: center;
+  }
+
+  .total-line {
+    text-align: center;
+    font-size: 13px;
+    margin: 12px 0 20px 0;
+  }
+
+  hr.divider {
+    border: none;
+    border-top: 1px solid #555;
+    margin: 10px 0 18px 0;
+  }
+
+  .declaration-title {
+    font-weight: bold;
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .declaration-body {
+    font-size: 13px;
+    line-height: 1.7;
+  }
+
+  .footer {
+    position: absolute;
+    bottom: 30px;
+    left: 50px;
+    right: 50px;
+    text-align: center;
+    font-size: 12px;
+    border-top: 1px solid #555;
+    padding-top: 10px;
+    line-height: 1.7;
+  }
+</style>
+</head>
+
+<body>
+{% for emp in employees %}
+<div class="page">
+
+  <!-- LOGO -->
+  <div class="logo-wrap">
+    {% if logo_path %}
+    <img src="{{ logo_path }}" alt="Innobot Logo">
+    {% endif %}
+  </div>
+
+  <!-- TITLE -->
+  <div class="doc-title">RECORD OF INTERNSHIP ALLOWANCE</div>
+
+  <!-- NAME & DESIGNATION -->
+  <table class="emp-info">
+    <tr>
+      <td>Name</td>
+      <td class="colon">:</td>
+      <td>{{ emp.name }}</td>
+    </tr>
+    <tr>
+      <td>Designation</td>
+      <td class="colon">:</td>
+      <td>{{ emp.responsibility }}</td>
+    </tr>
+  </table>
+
+  <!-- ALLOWANCE TABLE -->
+  <table class="allw-table">
+    <tr class="group-header">
+      <td colspan="6">Allowance Details</td>
+    </tr>
+    <tr class="col-header">
+      <td>Month</td>
+      <td>Allowance<br>Amount</td>
+      <td>Total Paid<br>Amount</td>
+      <td>Payment<br>Date</td>
+      <td>Mode of<br>Payment</td>
+      <td>Remarks</td>
+    </tr>
+    <tr>
+      <td>{{ month }} {{ year }}</td>
+      <td>{{ (emp.travel_reim | numval + emp['incentives.1'] | numval) | fmt }}</td>
+      <td>{{ (emp.travel_reim | numval + emp['incentives.1'] | numval) | fmt }}</td>
+      <td>{{ payment_date | datefmt }}</td>
+      <td>Bank Transfer</td>
+      <td>Paid in full</td>
+    </tr>
+  </table>
+
+  <hr class="divider">
+
+  <!-- TOTAL -->
+  <div class="total-line">Total Allowance Paid: {{ (emp.travel_reim | numval + emp['incentives.1'] | numval) | fmtf }} LKR</div>
+
+  <hr class="divider">
+
+  <!-- DECLARATION -->
+  <div class="declaration-title">Declaration</div>
+  <div class="declaration-body">
+    This document serves as a record that the above-mentioned allowance
+    has been paid to the intern for the specified period. It is issued in lieu of
+    a formal payslip and is valid for any banking purposes.
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Innobot (Pvt) Ltd, 16th lane, Ananda Balika Mawatha, Sri Jayawardanapura Kotte.<br>
+    Tel: +94 117 719 999<br>
+    +94 779 361 972
+  </div>
+
+</div>
+{% endfor %}
+</body>
+</html>

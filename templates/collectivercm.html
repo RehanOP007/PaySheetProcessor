@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Payslip</title>
+
+<style>
+@page {
+    size: A5;
+    margin: 5mm;
+}
+
+body {
+    font-family: Calibri, "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    zoom: 0.95;
+}
+.container {
+    width: 100%;
+    max-width: 100%;
+    margin: auto;
+}
+.header-table {
+    width: 100%;
+}
+.header-table td {
+    vertical-align: top;
+}
+.logo img {
+    width: 210px;  
+    height: 90px;
+    object-fit: contain;
+}
+.logo-placeholder {
+            width: 210px;
+            height: 90px;
+            border: 1px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #999;
+        }
+.title {
+    font-weight: bold;
+    margin-top: 10px;
+    padding-bottom: 3px;
+}
+.table {
+    width: 80%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+.table td {
+    padding: 4px 0;
+}
+.label {
+    width: 70%;
+}
+.value {
+    width: 30%;
+    text-align: right;
+}
+.empvalue{
+    width: 30%;
+    text-align: left;
+}
+.bold {
+    font-weight: bold;
+}
+.section {
+    font-weight: bold;
+    text-decoration: underline;
+    padding-top: 10px;
+}
+.divider td {
+    border-bottom: 2px dashed black;
+    padding-bottom: 5px;
+}
+.dividertop td{
+     border-top: 2px dashed black;
+    padding-top: 5px;
+}
+.footer {
+    margin-top: 15px;
+    font-size: 12px;
+}
+.page {
+    page-break-after: always;
+}
+</style>
+
+</head>
+<body>
+
+{% for emp in employees %}
+<div class="container page">
+
+    <!-- HEADER -->
+    <table class="header-table">
+        <tr>
+            <td class="logo">
+                {% if logo_path %}
+                <img src="file:///{{ logo_path }}">
+            {% else %}
+                <div class="logo-placeholder">NO LOGO</div>
+            {% endif %}
+            </td>
+            <td align="left">
+                <strong>Collective RCM (Pvt) Ltd.</strong><br>
+                175/34/1, Lakeview Drive<br>
+                Colombo 05<br>
+                Tel: +94 114 234 334
+            </td>
+        </tr>
+    </table>
+
+    <!-- TITLE -->
+    <div class="title">
+        Pay Advice For the Month of {{ month }} {{ year }}
+    </div>
+
+    <!-- EMPLOYEE DETAILS -->
+    <table class="table">
+        <tr class="dividertop">
+            <td class="label">EPF/Emp Number:</td>
+            <td class="empvalue">{{ emp.emp_number }}</td>
+        </tr>
+        <tr>
+            <td class="label">Name:</td>
+            <td class="empvalue">{{ emp.name }}</td>
+        </tr>
+        <tr class="divider">
+            <td class="label">Designation:</td>
+            <td class="empvalue">{{ emp.role }}</td>
+            <td></td>
+        </tr>
+    </table>
+
+    <!-- BASIC -->
+    <table class="table">
+
+        {% set basic = emp.basic|float %}
+        {% set meal = emp.meal_allw|float %}
+        {% set total_basic = basic + meal %}
+
+        {% if basic != 0 %}
+        <tr>
+            <td class="label">Basic Salary</td>
+            <td class="value">{{ "{:,.2f}".format(basic) }}</td>
+        </tr>
+        {% endif %}
+
+        {% if meal != 0 %}
+        <tr>
+            <td class="label">Meal Allowance</td>
+            <td class="value">{{ "{:,.2f}".format(meal) }}</td>
+        </tr>
+        {% endif %}
+
+        {% if total_basic != 0 %}
+        <tr class="bold">
+            <td class="label">Total Basic</td>
+            <td class="value">{{ "{:,.2f}".format(total_basic) }}</td>
+        </tr>
+        {% endif %}
+
+    </table>
+
+    <!-- ALLOWANCES -->
+    <table class="table">
+
+        {% if emp.travel_allw|float != 0 %}
+        <tr>
+            <td class="label">Travel Allowance</td>
+            <td class="value">{{ "{:,.2f}".format(emp.travel_allw or 0) }}</td>
+        </tr>
+        {% endif %}
+
+        {% if emp.us_shift|float != 0 %}
+        <tr>
+            <td class="label">US Shift Allowance</td>
+            <td class="value">{{ "{:,.2f}".format(emp.us_shift or 0) }}</td>
+        </tr>
+        {% endif %}
+
+        {% if emp.vehicle_allw|float != 0 %}
+        <tr>
+            <td class="label">Vehicle Loan Allowance</td>
+            <td class="value">{{ "{:,.2f}".format(emp.vehicle_allw or 0) }}</td>
+        </tr>
+        {% endif %}
+
+        {% if emp.perform_allw|float != 0 %}
+        <tr>
+            <td class="label">Performance Allowance</td>
+            <td class="value">{{ "{:,.2f}".format(emp.perform_allw or 0) }}</td>
+        </tr>
+        {% endif %}
+
+        {% if emp.poya_pay|float != 0 %}
+        <tr>
+            <td class="label">Holiday Allowance</td>
+            <td class="value">{{ "{:,.2f}".format(emp.poya_pay or 0) }}</td>
+        </tr>
+        {% endif %}
+
+        {% if emp.health_and_wellness|float != 0 %}
+        <tr>
+            <td class="label">Health and Wellness</td>
+            <td class="value">{{ "{:,.2f}".format(emp.health_and_wellness or 0) }}</td>
+        </tr>
+        {% endif %}
+
+        {% if emp.boarding_allowance|float != 0 %}
+        <tr>
+            <td class="label">Boarding Allowance</td>
+            <td class="value">{{ "{:,.2f}".format(emp.boarding_allowance or 0) }}</td>
+        </tr>
+        {% endif %}
+
+        {% if emp.special_traveling_meal_reimbursements|float != 0 %}
+        <tr>
+            <td class="label">Special Traveling & Meal Reimbursements</td>
+            <td class="value">{{ "{:,.2f}".format(emp.special_traveling_meal_reimbursements or 0) }}</td>
+        </tr>
+        {% endif %}
+
+        {% if emp.reimbursements|float != 0 %}
+        <tr>
+            <td class="label">Reimbursements</td>
+            <td class="value">{{ "{:,.2f}".format(emp.reimbursements or 0) }}</td>
+        </tr>
+        {% endif %}
+
+        {% if emp.team_profit_share|float != 0 %}
+        <tr>
+            <td class="label">Profit Share</td>
+            <td class="value">{{ "{:,.2f}".format(emp.team_profit_share or 0) }}</td>
+        </tr>
+        {% endif %}
+
+        <!-- TOTAL (only show if something exists) -->
+        {% if
+            emp.travel_allw|float != 0 or
+            emp.us_shift|float != 0 or
+            emp.vehicle_allw|float != 0 or
+            emp.perform_allw|float != 0 or
+            emp.poya_pay|float != 0 or
+            emp.health_and_wellness|float != 0 or
+            emp.boarding_allowance|float != 0 or
+            emp.special_traveling_meal_reimbursements|float != 0 or
+            emp.reimbursements|float != 0 or
+            emp.team_profit_share|float != 0
+        %}
+        <tr class="bold">
+            <td class="label">Total Allowances</td>
+            <td class="value">
+                {{"{:,.2f}".format(                
+                (emp.travel_allw or 0) +
+                (emp.us_shift or 0) +
+                (emp.vehicle_allw or 0) +
+                (emp.perform_allw or 0) +
+                (emp.poya_pay or 0) +
+                (emp.health_and_wellness or 0) +
+                (emp.boarding_allowance or 0) +
+                (emp.special_traveling_meal_reimbursements or 0) +
+                (emp.reimbursements or 0) +
+                (emp.team_profit_share or 0))
+                }}
+            </td>
+        </tr>
+        {% endif %}
+
+    </table>
+
+    <!-- DEDUCTIONS -->
+    <table class="table">
+        <tr><td colspan="2" class="section">Deductions</td></tr>
+
+        <tr>
+            <td class="label">EPF Employee 8%</td>
+            <td class="value">{{ "{:,.2f}".format(emp["epf_8%_(employee)"] or 0) }}</td>
+        </tr>
+        <tr>
+            <td class="label">No-Pay</td>
+            <td class="value">{{ "{:,.2f}".format(emp.nopay or 0) }}</td>
+        </tr>
+        <tr class="bold">
+            <td class="label">Total Deductions</td>
+            <td class="value">
+                {{ "{:,.2f}".format((emp["epf_8%_(employee)"] or 0) + (emp.nopay or 0)) }}
+            </td>
+        </tr>
+    </table>
+
+    <!-- COMPANY CONTRIBUTION -->
+    <table class="table">
+        <tr><td colspan="2" class="section">Company Contribution</td></tr>
+
+        <tr>
+            <td class="label">EPF 12%</td>
+            <td class="value">{{ "{:,.2f}".format(emp["company_epf_(12%)"] or 0) }}</td>
+        </tr>
+        <tr>
+            <td class="label">ETF 3%</td>
+            <td class="value">{{ "{:,.2f}".format(emp["company_etf_3%"] or 0) }}</td>
+        </tr>
+        <tr>
+            <td class="label">PAYE Tax</td>
+            <td class="value">{{ "{:,.2f}".format(emp.tax_on_tax or 0) }}</td>
+        </tr>
+        <tr class="bold">
+            <td class="label">Total Other Contributions</td>
+            <td class="value">
+                {{"{:,.2f}".format(
+                (emp["company_epf_(12%)"] or 0) +
+                (emp["company_etf_3%"] or 0) +
+                (emp.tax_on_tax or 0)
+                )
+                }}
+            </td>
+        </tr>
+    </table>
+
+    <!-- SUMMARY -->
+    <table class="table">
+        <tr><td colspan="2" class="section">Summary</td></tr>
+
+        <tr class="bold">
+            <td class="label">Total to Hand</td>
+            <td class="value">{{ "{:,.2f}".format(emp.salary_take_home or 0) }}</td>
+        </tr>
+        <tr class="bold">
+            <td class="label">Total Allocation</td>
+            <td class="value">{{ "{:,.2f}".format(emp.cost_to_company or 0) }}</td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        *PAYE tax is covered by the Company hence not deducted from the employee.
+    </div>
+
+</div>
+{% endfor %}
+
+</body>
+</html>
