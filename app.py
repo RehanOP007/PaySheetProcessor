@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, redirect, url_for, flash
+from flask import Flask, render_template, request, send_file, redirect, url_for, flash, jsonify
 import pandas as pd
 import os
 import math
@@ -543,6 +543,55 @@ def send_emails():
         flash(f"Sent {sent} email(s). Skipped {skipped} employee(s) without email.", "success")
 
     return redirect(url_for("index"))
+
+
+@app.route("/send-email-one", methods=["POST"])
+def send_email_one():
+    if global_df is None:
+        return jsonify({"ok": False, "message": "Please upload an Excel file first."}), 400
+
+    payload = request.get_json(silent=True) or request.form
+    company = payload.get("company", "venturecorp")
+    pay_period = payload.get("pay_period")
+    payment_date = payload.get("payment_date")
+    emp_id = str(payload.get("emp_id", "")).strip()
+    email_col = employee_email_column(global_df)
+
+    if email_col is None:
+        return jsonify({"ok": False, "message": "No email column found."}), 400
+
+    data = global_df[global_df["emp_number"].astype(str) == emp_id]
+    if data.empty:
+        return jsonify({"ok": False, "message": f"Employee {emp_id} not found."}), 404
+
+    row = data.iloc[0]
+    employee_name = str(row.get("name", emp_id)).strip() or emp_id
+    to_email = row.get(email_col)
+
+    if pd.isna(to_email) or not str(to_email).strip():
+        return jsonify({
+            "ok": True,
+            "status": "skipped",
+            "emp_id": emp_id,
+            "message": f"{employee_name} skipped: missing email.",
+        })
+
+    try:
+        pdf_path = render_employee_pdf(emp_id, company, pay_period, payment_date)
+        send_employee_email(str(to_email).strip(), employee_name, pdf_path, company, pay_period)
+        return jsonify({
+            "ok": True,
+            "status": "sent",
+            "emp_id": emp_id,
+            "message": f"Sent to {employee_name} ({to_email}).",
+        })
+    except Exception as e:
+        return jsonify({
+            "ok": False,
+            "status": "error",
+            "emp_id": emp_id,
+            "message": f"{emp_id}: {str(e)}",
+        }), 500
 
 
 @app.route("/generate-one", methods=["POST"])

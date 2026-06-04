@@ -104,8 +104,41 @@
       font-size: 14px;
     }
 
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(240px, 1fr) auto;
+      gap: 14px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .filters {
+      display: grid;
+      grid-template-columns: minmax(220px, 1fr) 170px;
+      gap: 10px;
+    }
+
+    input, select {
+      width: 100%;
+      min-height: 40px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      font: inherit;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
     .table-wrap {
       overflow-x: auto;
+      max-height: 560px;
+      overflow-y: auto;
       border: 1px solid var(--border);
       border-radius: 8px;
       background: var(--card);
@@ -131,6 +164,9 @@
       text-transform: uppercase;
       letter-spacing: 0.06em;
       background: #0f172a;
+      position: sticky;
+      top: 0;
+      z-index: 1;
     }
 
     tr:last-child td { border-bottom: none; }
@@ -147,6 +183,19 @@
       color: #bfdbfe;
       background: rgba(37, 99, 235, 0.1);
       font-size: 12px;
+    }
+
+    .select-cell {
+      width: 44px;
+      text-align: center;
+    }
+
+    input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      min-height: 18px;
+      accent-color: var(--accent);
+      cursor: pointer;
     }
 
     .link-btn, button {
@@ -169,7 +218,7 @@
       display: grid;
       grid-template-columns: repeat(3, minmax(180px, 1fr));
       gap: 12px;
-      margin-top: 18px;
+      min-width: min(100%, 620px);
     }
 
     .actions form { margin: 0; }
@@ -187,9 +236,54 @@
       color: #fff;
     }
 
+    button[disabled] {
+      opacity: 0.62;
+      cursor: wait;
+    }
+
+    .status-panel {
+      display: none;
+      margin-bottom: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      overflow: hidden;
+    }
+
+    .status-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      background: #0f172a;
+      color: var(--subtext);
+      font-size: 13px;
+    }
+
+    .status-list {
+      max-height: 190px;
+      overflow-y: auto;
+      padding: 8px 14px;
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
+    .status-item.sent { color: #86efac; }
+    .status-item.skipped { color: #facc15; }
+    .status-item.error { color: #fca5a5; }
+
+    .selection-note {
+      margin-top: 8px;
+      color: var(--subtext);
+      font-size: 13px;
+      grid-column: 1 / -1;
+    }
+
     @media (max-width: 760px) {
       .page-head { display: block; }
       .summary { margin-top: 16px; }
+      .toolbar { grid-template-columns: 1fr; }
+      .filters { grid-template-columns: 1fr; }
       .actions { grid-template-columns: 1fr; }
     }
   </style>
@@ -222,10 +316,56 @@
       </div>
     {% endif %}
 
+    <div class="toolbar">
+      <div class="filters">
+        <input id="searchInput" type="search" placeholder="Search employee, name or email">
+        <select id="emailFilter">
+          <option value="all">All records</option>
+          <option value="with-email">With email</option>
+          <option value="missing-email">Missing email</option>
+        </select>
+        <div id="selectionNote" class="selection-note">0 selected</div>
+      </div>
+
+      <div class="actions">
+        <form id="sendEmailsForm" action="/send-emails" method="post">
+          <input type="hidden" name="company" value="{{ company }}">
+          <input type="hidden" name="pay_period" value="{{ pay_period }}">
+          <input type="hidden" name="payment_date" value="{{ payment_date }}">
+          <button class="success" type="submit" {% if not email_column %}disabled{% endif %}>Send Email</button>
+        </form>
+
+        <form action="/download-all" method="post">
+          <input type="hidden" name="company" value="{{ company }}">
+          <input type="hidden" name="pay_period" value="{{ pay_period }}">
+          <input type="hidden" name="payment_date" value="{{ payment_date }}">
+          <button class="primary" type="submit">Download All Payslips</button>
+        </form>
+
+        <form action="/download-zip" method="post">
+          <input type="hidden" name="company" value="{{ company }}">
+          <input type="hidden" name="pay_period" value="{{ pay_period }}">
+          <input type="hidden" name="payment_date" value="{{ payment_date }}">
+          <button type="submit">Download Separate ZIP</button>
+        </form>
+      </div>
+    </div>
+
+    <div id="statusPanel" class="status-panel">
+      <div class="status-head">
+        <span id="statusTitle">Sending emails...</span>
+        <span id="statusCount">0 / {{ employees|length }}</span>
+      </div>
+      <div id="statusList" class="status-list"></div>
+    </div>
+
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
+            <th class="select-cell">
+              <input id="selectAllRows" type="checkbox" aria-label="Select all employees">
+            </th>
             <th>Employee No</th>
             <th>Name</th>
             <th>Email</th>
@@ -233,9 +373,12 @@
             <th>Payslip</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody id="employeeRows">
           {% for employee in employees %}
-            <tr>
+            <tr data-emp-id="{{ employee.emp_number }}" data-email="{{ employee.email }}" data-search="{{ (employee.emp_number ~ ' ' ~ employee.name ~ ' ' ~ employee.email ~ ' ' ~ employee.kind)|lower }}">
+              <td class="select-cell">
+                <input class="employee-check" type="checkbox" aria-label="Select {{ employee.name or employee.emp_number }}">
+              </td>
               <td class="mono">{{ employee.emp_number }}</td>
               <td>{{ employee.name or "Unnamed" }}</td>
               <td class="{{ '' if employee.email else 'missing' }}">{{ employee.email or "Missing email" }}</td>
@@ -250,29 +393,148 @@
         </tbody>
       </table>
     </div>
-
-    <div class="actions">
-      <form action="/send-emails" method="post">
-        <input type="hidden" name="company" value="{{ company }}">
-        <input type="hidden" name="pay_period" value="{{ pay_period }}">
-        <input type="hidden" name="payment_date" value="{{ payment_date }}">
-        <button class="success" type="submit">Send Email</button>
-      </form>
-
-      <form action="/download-all" method="post">
-        <input type="hidden" name="company" value="{{ company }}">
-        <input type="hidden" name="pay_period" value="{{ pay_period }}">
-        <input type="hidden" name="payment_date" value="{{ payment_date }}">
-        <button class="primary" type="submit">Download All Payslips</button>
-      </form>
-
-      <form action="/download-zip" method="post">
-        <input type="hidden" name="company" value="{{ company }}">
-        <input type="hidden" name="pay_period" value="{{ pay_period }}">
-        <input type="hidden" name="payment_date" value="{{ payment_date }}">
-        <button type="submit">Download Separate ZIP</button>
-      </form>
-    </div>
   </main>
+
+  <script>
+    const company = {{ company|tojson }};
+    const payPeriod = {{ pay_period|tojson }};
+    const paymentDate = {{ payment_date|tojson }};
+    const searchInput = document.getElementById("searchInput");
+    const emailFilter = document.getElementById("emailFilter");
+    const selectAllRows = document.getElementById("selectAllRows");
+    const selectionNote = document.getElementById("selectionNote");
+    const rows = Array.from(document.querySelectorAll("#employeeRows tr"));
+    const rowChecks = Array.from(document.querySelectorAll(".employee-check"));
+    const sendForm = document.getElementById("sendEmailsForm");
+    const statusPanel = document.getElementById("statusPanel");
+    const statusTitle = document.getElementById("statusTitle");
+    const statusCount = document.getElementById("statusCount");
+    const statusList = document.getElementById("statusList");
+
+    function applyFilters() {
+      const term = searchInput.value.trim().toLowerCase();
+      const filter = emailFilter.value;
+
+      rows.forEach(row => {
+        const hasEmail = row.dataset.email.trim().length > 0;
+        const matchesText = !term || row.dataset.search.includes(term);
+        const matchesEmail =
+          filter === "all" ||
+          (filter === "with-email" && hasEmail) ||
+          (filter === "missing-email" && !hasEmail);
+
+        row.style.display = matchesText && matchesEmail ? "" : "none";
+      });
+
+      updateSelectionState();
+    }
+
+    function visibleRows() {
+      return rows.filter(row => row.style.display !== "none");
+    }
+
+    function selectedRows() {
+      return rows.filter(row => row.querySelector(".employee-check").checked);
+    }
+
+    function updateSelectionState() {
+      const visible = visibleRows();
+      const selected = selectedRows();
+      const visibleSelected = visible.filter(row => row.querySelector(".employee-check").checked);
+
+      selectionNote.textContent = `${selected.length} selected`;
+      selectAllRows.checked = visible.length > 0 && visibleSelected.length === visible.length;
+      selectAllRows.indeterminate = visibleSelected.length > 0 && visibleSelected.length < visible.length;
+    }
+
+    function addStatus(message, type) {
+      const item = document.createElement("div");
+      item.className = `status-item ${type}`;
+      item.textContent = message;
+      statusList.appendChild(item);
+      statusList.scrollTop = statusList.scrollHeight;
+    }
+
+    searchInput.addEventListener("input", applyFilters);
+    emailFilter.addEventListener("change", applyFilters);
+    rowChecks.forEach(check => check.addEventListener("change", updateSelectionState));
+
+    selectAllRows.addEventListener("change", () => {
+      visibleRows().forEach(row => {
+        row.querySelector(".employee-check").checked = selectAllRows.checked;
+      });
+      updateSelectionState();
+    });
+
+    sendForm.addEventListener("submit", async event => {
+      event.preventDefault();
+
+      const button = sendForm.querySelector("button");
+      const targets = selectedRows();
+      if (targets.length === 0) {
+        statusPanel.style.display = "block";
+        statusList.textContent = "";
+        statusTitle.textContent = "Select at least one employee before sending.";
+        statusCount.textContent = "0 / 0";
+        return;
+      }
+
+      const employeeRows = targets.filter(row => row.dataset.email.trim().length > 0);
+      let sent = 0;
+      let skipped = targets.length - employeeRows.length;
+      let failed = 0;
+
+      button.disabled = true;
+      button.textContent = "Sending...";
+      statusPanel.style.display = "block";
+      statusList.textContent = "";
+      statusTitle.textContent = "Sending selected emails one by one...";
+      statusCount.textContent = `0 / ${employeeRows.length}`;
+
+      targets
+        .filter(row => !row.dataset.email.trim())
+        .forEach(row => addStatus(`${row.dataset.empId} skipped: missing email.`, "skipped"));
+
+      for (let index = 0; index < employeeRows.length; index += 1) {
+        const row = employeeRows[index];
+        const empId = row.dataset.empId;
+        statusCount.textContent = `${index + 1} / ${employeeRows.length}`;
+
+        try {
+          const response = await fetch("/send-email-one", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              emp_id: empId,
+              company,
+              pay_period: payPeriod,
+              payment_date: paymentDate
+            })
+          });
+          const result = await response.json();
+
+          if (response.ok && result.status === "sent") {
+            sent += 1;
+            addStatus(result.message, "sent");
+          } else if (response.ok && result.status === "skipped") {
+            skipped += 1;
+            addStatus(result.message, "skipped");
+          } else {
+            failed += 1;
+            addStatus(result.message || `Failed to send ${empId}.`, "error");
+          }
+        } catch (error) {
+          failed += 1;
+          addStatus(`${empId}: ${error.message}`, "error");
+        }
+      }
+
+      statusTitle.textContent = `Complete: ${sent} sent, ${skipped} skipped, ${failed} failed.`;
+      button.disabled = false;
+      button.textContent = "Send Email";
+    });
+
+    updateSelectionState();
+  </script>
 </body>
 </html>
