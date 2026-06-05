@@ -30,6 +30,8 @@ def main():
     smtp_username = os.environ.get("SMTP_USERNAME")
     smtp_password = os.environ.get("SMTP_PASSWORD")
     from_email = os.environ.get("FROM_EMAIL", smtp_username)
+    smtp_use_tls = os.environ.get("SMTP_USE_TLS", "true").strip().lower() != "false"
+    smtp_use_ssl = os.environ.get("SMTP_USE_SSL", "false").strip().lower() == "true"
     to_email = sys.argv[1] if len(sys.argv) > 1 else from_email
 
     missing = [
@@ -55,9 +57,12 @@ def main():
     print(f"Logging in as {smtp_username}")
     print(f"Sending test email to {to_email}")
 
-    with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
+    smtp_client = smtplib.SMTP_SSL if smtp_use_ssl else smtplib.SMTP
+
+    with smtp_client(smtp_host, smtp_port, timeout=30) as server:
         server.set_debuglevel(1)
-        server.starttls()
+        if smtp_use_tls and not smtp_use_ssl:
+            server.starttls()
         server.login(smtp_username, smtp_password)
         server.send_message(msg)
 

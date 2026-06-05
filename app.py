@@ -287,6 +287,8 @@ def send_employee_email(to_email, employee_name, pdf_path, company, pay_period):
     smtp_username = os.environ.get("SMTP_USERNAME")
     smtp_password = os.environ.get("SMTP_PASSWORD")
     from_email = os.environ.get("FROM_EMAIL", smtp_username)
+    smtp_use_tls = os.environ.get("SMTP_USE_TLS", "true").strip().lower() != "false"
+    smtp_use_ssl = os.environ.get("SMTP_USE_SSL", "false").strip().lower() == "true"
 
     if not all([smtp_host, smtp_username, smtp_password, from_email]):
         raise RuntimeError("Email is not configured. Set SMTP_HOST, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD and FROM_EMAIL.")
@@ -309,8 +311,11 @@ def send_employee_email(to_email, employee_name, pdf_path, company, pay_period):
             filename=os.path.basename(pdf_path)
         )
 
-    with smtplib.SMTP(smtp_host, smtp_port) as server:
-        server.starttls()
+    smtp_client = smtplib.SMTP_SSL if smtp_use_ssl else smtplib.SMTP
+
+    with smtp_client(smtp_host, smtp_port, timeout=30) as server:
+        if smtp_use_tls and not smtp_use_ssl:
+            server.starttls()
         server.login(smtp_username, smtp_password)
         server.send_message(msg)
 
