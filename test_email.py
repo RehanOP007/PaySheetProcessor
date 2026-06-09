@@ -51,7 +51,21 @@ def main():
     msg["Subject"] = "Payroll SMTP test"
     msg["From"] = from_email
     msg["To"] = to_email
-    msg.set_content("SMTP test email sent from PaySheetProcessor.")
+    body = (
+        "Hi NAME,\n\n"
+        "Please find the attached salary slip for the month of May 2026.\n\n"
+        "*Please make sure to keep this email confidential and you must not share/show this email "
+        "with anyone regarding salary. Please note that if we become aware that this has been done, "
+        "we will have to take action in accordance with the company's disciplinary policies.\n\n"
+        "Thank you.\n"
+        "HR Department.\n\n"
+        "Please do not reply."
+    )
+    msg.set_content(body)
+
+    print("Email template preview:")
+    print(body)
+    print()
 
     print(f"Connecting to {smtp_host}:{smtp_port}")
     print(f"Logging in as {smtp_username}")

@@ -173,6 +173,13 @@ def employee_template_and_name(company, emp_id, pay_period):
         return "innobotINT.html", f"{safe_filename(emp_id)}_{pay_period}_intern.pdf"
     return f"{company.lower()}.html", f"{safe_filename(emp_id)}_{pay_period}_payslip.pdf"
 
+
+def format_salary_month(pay_period):
+    try:
+        return datetime.strptime(pay_period, "%Y-%m").strftime("%B %Y")
+    except (TypeError, ValueError):
+        return str(pay_period)
+
 # ── HELPER: render + save one PDF, return path ───────────────────────────────
 
 def render_pdf(template_file, employees, month_str, year_str, logo_path,
@@ -281,7 +288,7 @@ def render_combined_pdf(company, pay_period, payment_date):
     return merged_path
 
 
-def send_employee_email(to_email, employee_name, pdf_path, company, pay_period):
+def send_employee_email(to_email, employee_name, pdf_path, company, pay_period, bcc_email=None):
     smtp_host = os.environ.get("SMTP_HOST")
     smtp_port = int(os.environ.get("SMTP_PORT", "587"))
     smtp_username = os.environ.get("SMTP_USERNAME")
@@ -297,10 +304,17 @@ def send_employee_email(to_email, employee_name, pdf_path, company, pay_period):
     msg["Subject"] = f"{company} payslip - {pay_period}"
     msg["From"] = from_email
     msg["To"] = to_email
+    if bcc_email:
+        msg["Bcc"] = bcc_email
     msg.set_content(
-        f"Dear {employee_name},\n\n"
-        f"Please find attached your payslip for {pay_period}.\n\n"
-        "Regards,\nPayroll Team"
+        f"Hi {employee_name},\n\n"
+        f"Please find the attached salary slip for the month of {format_salary_month(pay_period)}.\n\n"
+        "*Please make sure to keep this email confidential and you must not share/show this email "
+        "with anyone regarding salary. Please note that if we become aware that this has been done, "
+        "we will have to take action in accordance with the company's disciplinary policies.\n\n"
+        "Thank you.\n"
+        "HR Department.\n\n"
+        "Please do not reply."
     )
 
     with open(pdf_path, "rb") as f:
@@ -516,6 +530,7 @@ def send_emails():
     company = request.form.get("company", "venturecorp")
     pay_period = request.form.get("pay_period")
     payment_date = request.form.get("payment_date")
+    bcc_email = request.form.get("bcc_email", "").strip()
     email_col = employee_email_column(global_df)
 
     if email_col is None:
@@ -537,7 +552,7 @@ def send_emails():
 
         try:
             pdf_path = render_employee_pdf(emp_id, company, pay_period, payment_date)
-            send_employee_email(str(to_email).strip(), employee_name, pdf_path, company, pay_period)
+            send_employee_email(str(to_email).strip(), employee_name, pdf_path, company, pay_period, bcc_email)
             sent += 1
         except Exception as e:
             errors.append(f"{emp_id}: {str(e)}")
@@ -560,6 +575,7 @@ def send_email_one():
     pay_period = payload.get("pay_period")
     payment_date = payload.get("payment_date")
     emp_id = str(payload.get("emp_id", "")).strip()
+    bcc_email = str(payload.get("bcc_email", "")).strip()
     email_col = employee_email_column(global_df)
 
     if email_col is None:
@@ -583,7 +599,7 @@ def send_email_one():
 
     try:
         pdf_path = render_employee_pdf(emp_id, company, pay_period, payment_date)
-        send_employee_email(str(to_email).strip(), employee_name, pdf_path, company, pay_period)
+        send_employee_email(str(to_email).strip(), employee_name, pdf_path, company, pay_period, bcc_email)
         return jsonify({
             "ok": True,
             "status": "sent",
