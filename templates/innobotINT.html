@@ -176,8 +176,8 @@
     </tr>
     <tr>
       <td>{{ month }} {{ year }}</td>
-      <td>{{ (emp.travel_reim | numval + emp['incentives.1'] | numval) | fmt }}</td>
-      <td>{{ (emp.travel_reim | numval + emp['incentives.1'] | numval) | fmt }}</td>
+      <td>{{ (emp.travel_reim | numval + emp['incentives.1'] | numval + emp['reimbursements.1'] | numval) | fmt }}</td>
+      <td>{{ (emp.travel_reim | numval + emp['incentives.1'] | numval + emp['reimbursements.1'] | numval) | fmt }}</td>
       <td>{{ payment_date | datefmt }}</td>
       <td>Bank Transfer</td>
       <td>Paid in full</td>
@@ -187,7 +187,7 @@
   <hr class="divider">
 
   <!-- TOTAL -->
-  <div class="total-line">Total Allowance Paid: {{ (emp.travel_reim | numval + emp['incentives.1'] | numval) | fmtf }} LKR</div>
+  <div class="total-line">Total Allowance Paid: {{ (emp.travel_reim | numval + emp['incentives.1'] | numval + emp['reimbursements.1'] | numval) | fmtf }} LKR</div>
 
   <hr class="divider">
 
