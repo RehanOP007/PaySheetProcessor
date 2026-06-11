@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Payslip</title>
+
+<style>
+@page {
+    size: A5;
+    margin: 5mm;
+}
+
+body {
+    font-family: Calibri, "Segoe UI", Arial, sans-serif;
+    font-size: 14px;
+    zoom: 0.95;
+}
+.container {
+    width: 100%;
+    max-width: 100%;
+    margin: auto;
+}
+.header-table {
+    width: 100%;
+}
+.header-table td {
+    vertical-align: top;
+}
+.logo img {
+    width: 100px;  
+    height: 90px;
+    object-fit: contain;
+}
+.logo-placeholder {
+            width: 100px;
+            height: 90px;
+            border: 1px dashed #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #999;
+        }
+.title {
+    font-weight: bold;
+    margin-top: 10px;
+    padding-bottom: 3px;
+}
+.table {
+    width: 80%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+.table td {
+    padding: 4px 0;
+}
+.label {
+    width: 70%;
+}
+.value {
+    width: 30%;
+    text-align: right;
+}
+.empvalue{
+    width: 30%;
+    text-align: left;
+}
+.bold {
+    font-weight: bold;
+}
+.section {
+    font-weight: bold;
+    text-decoration: underline;
+    padding-top: 10px;
+}
+.divider td {
+    border-bottom: 2px dashed black;
+    padding-bottom: 5px;
+}
+.dividertop td{
+     border-top: 2px dashed black;
+    padding-top: 5px;
+}
+.footer {
+    margin-top: 15px;
+    font-size: 12px;
+}
+.page {
+    page-break-after: always;
+}
+</style>
+
+</head>
+<body>
+
+{% for emp in employees %}
+<div class="container page">
+
+    <!-- HEADER -->
+    <table class="header-table">
+        <tr>
+            <td class="logo">
+                {% if logo_path %}
+                <img src="file:///{{ logo_path }}">
+            {% else %}
+                <div class="logo-placeholder">NO LOGO</div>
+            {% endif %}
+            </td>
+            <td align="left">
+                <strong>Ceylon Places (Pvt) Ltd.</strong><br>
+                50, Mission Road, Sri Jayawardhanapura Kotte,<br>
+                Colombo 05
+            </td>
+        </tr>
+    </table>
+
+    <!-- TITLE -->
+    <div class="title">
+        Pay Advice For the Month of {{ month }} {{ year }}
+    </div>
+
+    <!-- EMPLOYEE DETAILS -->
+    <table class="table">
+        <tr class="dividertop">
+            <td class="label">EPF/Emp Number:</td>
+            <td class="empvalue">{{ emp.emp_number }}</td>
+        </tr>
+        <tr>
+            <td class="label">Name:</td>
+            <td class="empvalue">{{ emp.name }}</td>
+        </tr>
+        <tr class="divider">
+            <td class="label">Designation:</td>
+            <td class="empvalue">{{ emp.designation }}</td>
+            <td></td>
+        </tr>
+    </table>
+
+    <!-- ALLOWANCES -->
+    <table class="table">
+        {% set driver_allow = emp.basic_salary|float %}
+
+        {% if driver_allow != 0 %}
+        <tr>
+            <td class="label">Driver Allowance</td>
+            <td class="value">{{ "{:,.2f}".format(driver_allow) }}</td>
+        </tr>
+        {% endif %}
+
+        {% if emp.reimbursement and emp.reimbursement|float != 0 %}
+        <tr>
+            <td class="label">Reimbursements</td>
+            <td class="value">{{ "{:,.2f}".format(emp.reimbursement or 0) }}</td>
+        </tr>
+        {% endif %}
+
+        <!-- TOTAL (only show if something exists) -->
+        {% if
+            driver_allow != 0 or
+            emp.reimbursement|float != 0
+        %}
+        <tr class="bold">
+            <td class="label">Total Allowances</td>
+            <td class="value">
+                {{"{:,.2f}".format(                
+                emp.total or 0
+                )}}
+            </td>
+        </tr>
+        {% endif %}
+
+    </table>
+
+    <!-- SUMMARY -->
+    <table class="table">
+        <tr><td colspan="2" class="section">Summary</td></tr>
+
+        <tr class="bold">
+            <td class="label">Total to Hand</td>
+            <td class="value">{{ "{:,.2f}".format(emp.salary_take_home or 0) }}</td>
+        </tr>
+        <tr class="bold">
+            <td class="label">Total Allocation</td>
+            <td class="value">{{ "{:,.2f}".format(emp.cost_to_company or 0) }}</td>
+        </tr>
+    </table>
+
+</div>
+{% endfor %}
+
+</body>
+</html>

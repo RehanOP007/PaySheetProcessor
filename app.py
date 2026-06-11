@@ -168,10 +168,19 @@ def get_payroll_context(company, pay_period, payment_date):
     return date_obj, month_str, year_str, logo_path
 
 
-def employee_template_and_name(company, emp_id, pay_period):
+def regular_template(company, row=None):
+    """Template for a NON-intern employee."""
+    if company.lower() == "zymeda" and row is not None:
+        resp = str(row.get("responsibility", "")).strip().lower()
+        if resp in ("director", "consultant"):
+            return "zymedaDorC.html"
+    return f"{company.lower()}.html"
+
+
+def employee_template_and_name(company, emp_id, pay_period, row=None):
     if is_intern(emp_id):
         return "innobotINT.html", f"{safe_filename(emp_id)}_{pay_period}_intern.pdf"
-    return f"{company.lower()}.html", f"{safe_filename(emp_id)}_{pay_period}_payslip.pdf"
+    return regular_template(company, row), f"{safe_filename(emp_id)}_{pay_period}_payslip.pdf"
 
 
 def format_salary_month(pay_period):
@@ -187,9 +196,33 @@ def render_pdf(template_file, employees, month_str, year_str, logo_path,
     """Render a Jinja2 template to PDF and return the output path."""
     pdf_path = os.path.join(OUTPUT_FOLDER, output_name)
 
+    class Row(dict):
+        """Dict subclass that also supports dot notation and sanitizes NaN."""
+        def __getattr__(self, key):
+            try:
+                return self[key]
+            except KeyError:
+                return 0.0
+
+        def __missing__(self, key):
+            return 0.0
+
+    def to_row(d):
+        def clean(v):
+            if v is None:
+                return 0.0
+            if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+                return 0.0
+            if isinstance(v, str) and v.strip().lower() in ("nan", "inf", "-inf", "none", ""):
+                return 0.0
+            return v
+        return Row({k: clean(v) for k, v in d.items()})
+
+    employee_objects = [to_row(e) for e in employees]
+
     html = render_template(
         template_file,
-        employees=employees,
+        employees=employee_objects,
         month=month_str,
         year=year_str,
         logo_path=logo_path,
@@ -205,8 +238,9 @@ def render_employee_pdf(emp_id, company, pay_period, payment_date):
     if data.empty:
         raise ValueError(f"Employee ID {emp_id} not found")
 
+    row = data.iloc[0]
     date_obj, month_str, year_str, logo_path = get_payroll_context(company, pay_period, payment_date)
-    template_file, output_name = employee_template_and_name(company, emp_id, pay_period)
+    template_file, output_name = employee_template_and_name(company, emp_id, pay_period, row)
 
     return render_pdf(
         template_file,
@@ -241,17 +275,25 @@ def render_combined_pdf(company, pay_period, payment_date):
     generated = []
 
     if not df_regulars.empty:
-        generated.append(render_pdf(
-            f"{company.lower()}.html",
-            df_regulars.to_dict(orient="records"),
-            month_str,
-            year_str,
-            logo_path,
-            pay_period,
-            payment_date,
-            date_obj,
-            f"_tmp_{company}_regulars_{pay_period}.pdf"
-        ))
+        # Group regulars by resolved template (handles zymeda D/C split;
+        # non-zymeda all map to one template, same as before).
+        groups = {}
+        for _, row in df_regulars.iterrows():
+            tmpl = regular_template(company, row)
+            groups.setdefault(tmpl, []).append(row.to_dict())
+
+        for idx, (tmpl, records) in enumerate(groups.items()):
+            generated.append(render_pdf(
+                tmpl,
+                records,
+                month_str,
+                year_str,
+                logo_path,
+                pay_period,
+                payment_date,
+                date_obj,
+                f"_tmp_{company}_regulars_{idx}_{pay_period}.pdf"
+            ))
 
     if not df_interns.empty:
         generated.append(render_pdf(
@@ -357,30 +399,54 @@ def upload():
     path = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(path)
 
+    company = request.form.get("company", "").upper()
+
     try:
-        df = pd.read_excel(path, header=1)
+        # ── Ceylon Places: headers on row 8, ID column is "Company ID" ──────
+        if company == "CEYLONPLACES":
+            df = pd.read_excel(path, header=7, engine="openpyxl")
 
-        df = df.loc[:, ~df.columns.astype(str).str.contains("^Unnamed", na=False)]
-        df.columns = (
-            df.columns.astype(str)
-            .str.strip()
-            .str.lower()
-            .str.replace(r'[\s/&]+', '_', regex=True)
-        )
+            df = df.loc[:, ~df.columns.astype(str).str.contains("^Unnamed", na=False)]
+            df.columns = (
+                df.columns.astype(str)
+                .str.strip()
+                .str.lower()
+                .str.replace(r'[\s/&]+', '_', regex=True)
+            )
 
-        if "emp_number" not in df.columns:
-            flash("Column 'emp_number' not found in uploaded file", "error")
-            return redirect(url_for("index"))
+            # Drop the totals row (no # value) and any fully empty rows
+            df = df.dropna(subset=["#"])
+            df = df[df["#"].astype(str).str.strip() != ""]
 
-        df = df.dropna(subset=["emp_number"])
+            # Rename "company_id" → "emp_number" so all downstream code works
+            if "company_id" in df.columns:
+                df = df.rename(columns={"company_id": "emp_number"})
 
-        # Drop stray purely-numeric column names (e.g. '315')
-        df = df.loc[:, ~df.columns.str.match(r'^\d+$')]
+            # Drop stray purely-numeric column names
+            df = df.loc[:, ~df.columns.str.match(r'^\d+$')]
+
+        # ── All other companies: existing logic ──────────────────────────────
+        else:
+            df = pd.read_excel(path, header=1)
+
+            df = df.loc[:, ~df.columns.astype(str).str.contains("^Unnamed", na=False)]
+            df.columns = (
+                df.columns.astype(str)
+                .str.strip()
+                .str.lower()
+                .str.replace(r'[\s/&]+', '_', regex=True)
+            )
+
+            if "emp_number" not in df.columns:
+                flash("Column 'emp_number' not found in uploaded file", "error")
+                return redirect(url_for("index"))
+
+            df = df.dropna(subset=["emp_number"])
+            df = df.loc[:, ~df.columns.str.match(r'^\d+$')]
 
         global_df = df
         print(f"✅ Processed columns: {df.columns.tolist()}")
 
-        # Summary counts
         intern_count  = df["emp_number"].astype(str).str.upper().str.endswith("INT").sum()
         regular_count = len(df) - intern_count
         flash(f"Excel uploaded: {regular_count} employee(s), {intern_count} intern(s).", "success")
@@ -645,7 +711,7 @@ def generate_one():
             template_file = "innobotINT.html"
             pdf_name      = f"{emp_id}_intern_allowance.pdf"
         else:
-            template_file = f"{company.lower()}.html"
+            template_file = regular_template(company, emp_data.iloc[0])
             pdf_name      = f"{emp_id}_payslip.pdf"
 
         pdf_path = render_pdf(

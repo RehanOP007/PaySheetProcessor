@@ -281,6 +281,10 @@
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
+  // Always reset upload state on page load — server never persists
+  // the uploaded file across restarts, so stale localStorage must be cleared.
+  //localStorage.removeItem("file_uploaded");
+
   const flashEls = document.querySelectorAll(".flash.success");
   flashEls.forEach(el => {
     if (el.textContent.includes("cleared")) {
@@ -436,9 +440,12 @@ document.addEventListener("DOMContentLoaded", () => {
             <label>Company</label>
             <select id="company" required>
               <option value="" disabled selected>Select company…</option>
-              <option value="COLLECTIVERCM">COLLECTIVERCM</option>
+              <option value="COLLECTIVERCM">COLLECTIVE RCM</option>
               <option value="INNOBOT">INNOBOT</option>
               <option value="VENTURECORP">VENTURECORP</option>
+              <option value="ZYMEDA">ZYMEDA</option>
+              <option value="BMF">BOT MED FUSION</option>
+              <option value="CEYLONPLACES">CEYLON PLACES</option>
             </select>
           </div>
 
