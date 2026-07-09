@@ -264,10 +264,11 @@
 
     <tr><td>PAYE</td>
         <td class="right">{{ emp.paye_tax | fmt }}</td></tr>
-    
+
+    {% if emp.insurance | numval > 0 %}
     <tr><td>Insurance</td>
         <td class="right">{{ emp.insurance | fmt }}</td></tr>
-
+    {% endif %}
 
     <tr class="bold-row"><td>Total Deductions</td>
         <td class="right">{{ (emp['epf_8%_(employee)'] | numval + emp.paye_tax | numval + emp.nopay | numval) | fmtf }}</td></tr>
