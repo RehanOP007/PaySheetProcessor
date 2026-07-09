@@ -271,7 +271,7 @@
     {% endif %}
 
     <tr class="bold-row"><td>Total Deductions</td>
-        <td class="right">{{ (emp['epf_8%_(employee)'] | numval + emp.paye_tax | numval + emp.nopay | numval) | fmtf }}</td></tr>
+        <td class="right">{{ (emp['epf_8%_(employee)'] | numval + emp.paye_tax | numval + emp.nopay | numval + emp.insurance | numval) | fmtf }}</td></tr>
 
     <tr class="section-header col-header">
       <td>No-Pay</td>
